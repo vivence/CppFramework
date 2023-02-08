@@ -6,6 +6,7 @@
 #include "dis_new.h"
 #include "ref.h"
 #include "object.h"
+#include "enviroment.h"
 
 CORE_NAMESPACE_BEG
 
@@ -26,8 +27,17 @@ public:
     object_weak_ref() : _obj_id(object::_INVALID_ID), _p(nullptr) {}
 
 public:
-    const _T* operator->() const { return nullptr != *this ? _p : nullptr; }
-    _T* operator->() { return nullptr != *this ? _p : nullptr; }
+    const _T* operator->() const { return _safe_ref(); }
+    _T* operator->() { return _safe_ref(); }
+private:
+    _T* _safe_ref() const
+    {
+        if (nullptr == *this)
+        {
+            enviroment::get_current_env().get_bug_reporter().report(BUG_TAG_WEAK_REF, "weak_ref is nullptr!");
+        }
+        return _p;
+    }
 
 public:
 	static object_weak_ref null_ref;

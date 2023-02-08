@@ -8,28 +8,41 @@
 #include "object_weak_ref.h"
 #include "object_temp_ref.h"
 #include <type_traits>
+#include <vector>
 
 CORE_NAMESPACE_BEG
 
 class object_factory final : noncopyable {
-	object::_id_type _next_object_id = 1;
+	using _object_array_type = std::vector<object*>;
 
-	char _test_buf[100];
+	object::_id_type _next_object_id = 1;
+	_object_array_type _delay_destroy_objs;
+
+	char* _test_buf;
 	char* _mem;
 
-	char _temp_buf[100];
+	char* _temp_buf;
 	char* _temp_mem;
 
 public:
-	object_factory() : _test_buf(), _mem(&_test_buf[0]), _temp_buf(), _temp_mem(&_temp_buf[0]){}
+	object_factory() : _test_buf(new char[10000]), _mem(&_test_buf[0]), _temp_buf(new char[10000]), _temp_mem(&_temp_buf[0]){}
+	~object_factory();
 
-private:
+public:
+	void on_frame_end();
+
+private: // private functions
+	void _handle_delay_destroy();
+	void _recyle_temp_refs();
+
+private: // friend functions
 	template<typename _TID, typename _TObj>
 	friend class object_manager;
 
 	template<typename _T, typename ..._Args>
 	_T* new_obj(_Args&&... args);
 	void delete_obj(object* p_obj);
+	void delete_obj_immediately(object* p_obj);
 
 	template<typename _T>
 	object_weak_ref<_T> get_weak_ref(_T* p_obj);

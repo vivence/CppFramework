@@ -37,14 +37,16 @@ public:
     template<typename _T, typename ..._Args>
     object_weak_ref<_T> create(id_type id, _Args&&... args);
     void destroy(id_type id);
+    void destroy_immediately(id_type id);
 
     weak_ref try_get(id_type id) const;
     temp_ref& try_get_temp(id_type id) const;
-    // try_get(return weak_ref)
-    // try_get_temp(return temp_ref)
     // for_each
     // find_if
     // find_all_if
+
+private:
+    void _destroy(id_type id, void (object_factory::* delete_fuc)(object*));
 };
 
 template<typename _TID, typename _TObj>
@@ -85,16 +87,13 @@ object_weak_ref<_T> object_manager<_TID, _TObj>::create(id_type id, _Args&&... a
 template<typename _TID, typename _TObj>
 void object_manager<_TID, _TObj>::destroy(id_type id)
 {
-    auto iter = _map.find(id);
-    if (_map.end() == iter)
-    {
-        return;
-    }
+    _destroy(id, &object_factory::delete_obj);
+}
 
-    auto p_obj = iter->second;
-    _map.erase(iter);
-
-    _obj_factory.delete_obj(p_obj);
+template<typename _TID, typename _TObj>
+void object_manager<_TID, _TObj>::destroy_immediately(id_type id)
+{
+    _destroy(id, &object_factory::delete_obj_immediately);
 }
 
 template<typename _TID, typename _TObj>
@@ -119,6 +118,21 @@ typename object_manager<_TID, _TObj>::temp_ref& object_manager<_TID, _TObj>::try
     }
 
     return _obj_factory.get_temp_ref(iter->second);
+}
+
+template<typename _TID, typename _TObj>
+void object_manager<_TID, _TObj>::_destroy(id_type id, void (object_factory::* delete_fuc)(object*))
+{
+    auto iter = _map.find(id);
+    if (_map.end() == iter)
+    {
+        return;
+    }
+
+    auto p_obj = iter->second;
+    _map.erase(iter);
+
+    (_obj_factory.*delete_fuc)(p_obj);
 }
 
 CORE_NAMESPACE_END

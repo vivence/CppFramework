@@ -9,14 +9,16 @@ CORE_NAMESPACE_BEG
 
 template<typename _T>
 class ref : dis_new {
+protected:
     _T* _p;
 
 public:
     explicit ref(_T* p) : _p(p) {}
+    virtual ~ref() { _p = nullptr; }
 
 public:
-    const _T* operator->() const { return _p; }
-    _T* operator->() { return _p; }
+    virtual const _T* operator->() const { return _p; }
+    virtual _T* operator->() { return _p; }
 
 public:
     inline bool operator ==(const _T* p) const { return _p == p; }
