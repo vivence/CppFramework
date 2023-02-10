@@ -2,6 +2,7 @@
 #ifndef CORE_H
 #define CORE_H
 
+#include <cstdint>
 #include <cstddef>
 
 #define CORE_NAMESPACE_BEG namespace core{
