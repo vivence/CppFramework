@@ -29,23 +29,61 @@ class mem_pool : noncopyable {
 	};
 
 	_pool_pointer_type _pools[mem_cell::PoolCount];
+
+	mem_raw_pool* _get_pool(void* user_mem)
+	{
+		auto i = mem_cell::get_cell(user_mem).get_pool_index();
+		return mem_cell::PoolCount > i ? _pools[i].get() : nullptr;
+	}
 	
 public:
 	mem_pool() = default;
 
 public:
-	// 备忘：应该使block里每个cell都在block里内部连接（通过cell head可以找到block index），block之间也相互连接，保持pool只有一个head
 	template<size_t _ID, typename _T>
-	void* alloc()
-	{
-		static_assert(_config::pool_meta<_T>::PoolIndex < mem_cell::PoolCount, "PoolIndex is too large");
-		return _pool_creater<_ID, _config::pool_meta<_T>::PoolIndex, _config::cell_meta<_T>::Size, _config::cell_meta<_T>::Count>::get_pool(_pools).alloc();
-	}
+	void* alloc();
+	template<typename _T>
+	void* alloc() { return alloc<0, _T>(); }
+	bool free(void* user_mem);
 
-	void free(void* user_mem) 
-	{ 
-		// todo
+public:
+	struct info_for_global {
+		static const size_t cell_unit_size = _CellUnitSize;
+		static const size_t block_max_size = _BlockMaxSize;
+		static const size_t pool_max_count = mem_cell::PoolCount;
+		static const size_t cell_raw_size_min = sizeof(mem_cell);
+		static const size_t cell_head_size = sizeof(mem_cell::head_type);
+		static const size_t user_mem_offset_in_cell = mem_cell::UserMemOffset;
+	};
+	template<typename _T>
+	struct info_for_type {
+		static const size_t cell_raw_size = sizeof(_T);
+		static const size_t cell_size = _config::cell_meta<_T>::Size;
+		static const size_t cell_count_in_block = _config::cell_meta<_T>::Count;
+		static const size_t pool_index = _config::pool_meta<_T>::PoolIndex;
+	};
+};
+
+template<size_t _ID, typename _T>
+void* mem_pool::alloc()
+{
+	static_assert(_config::pool_meta<_T>::PoolIndex < mem_cell::PoolCount, "PoolIndex is too large");
+	auto user_mem = _pool_creater<_ID, _config::pool_meta<_T>::PoolIndex, _config::cell_meta<_T>::Size, _config::cell_meta<_T>::Count>::get_pool(_pools).alloc();
+	if (nullptr == user_mem)
+	{
+		return nullptr;
 	}
+	auto p_pool = _get_pool(user_mem);
+	return nullptr != p_pool ? p_pool->alloc() : nullptr;
+}
+
+template<size_t _ID>
+class mem_pool_for_id : noncopyable {
+	mem_pool _pool;
+public:
+	template<typename _T>
+	void* alloc() { return _pool.alloc<_ID, _T>(); }
+	bool free(void* user_mem) { _pool.free(); }
 };
 
 CORE_NAMESPACE_END

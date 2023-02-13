@@ -28,15 +28,45 @@ struct mem_cell {
 #if COMPACT_CELL
 	};
 #endif // COMPACT_CELL
+
+//private:
+//	enum { _HalfBytesCountOfHeadType = (sizeof(head_type) * 8 / 2) };
+//	static const head_type _BlockIndexMask = (head_type)~0 >> _HalfBytesCountOfHeadType;
+//	static const head_type _PoolIndexMask = ~_BlockIndexMask;
+
+public:
 	enum {
-		PoolCount = (int64_t)(mem_cell::head_type)~0 / 2,
-		CellCount = (int64_t)(mem_cell::head_type)~0 / 2,
+		//PoolCount = _BlockIndexMask + 1,
+		//BlockCount = _BlockIndexMask + 1,
+		PoolCount = (head_type)~0 +1,
 #if COMPACT_CELL
 		UserMemOffset = sizeof(head_type) 
 #else
 		UserMemOffset = sizeof(head_type) + sizeof(mem_cell*)
 #endif // COMPACT_CELL
 	};
+
+	void set_pool_index(size_t i)
+	{
+		// assert(PoolCount > i)
+		//head = (head & ~_PoolIndexMask) | ((head_type)i << _HalfBytesCountOfHeadType);
+		head = (head_type)i;
+	}
+	size_t get_pool_index()
+	{
+		//return head >> _HalfBytesCountOfHeadType;
+		return head;
+	}
+
+	//void set_block_index(size_t i)
+	//{
+	//	// assert(BlockCount > i)
+	//	head = (head & ~_BlockIndexMask) | ((head_type)i & _BlockIndexMask);
+	//}
+	//size_t get_block_index()
+	//{
+	//	return head & _BlockIndexMask;
+	//}
 
 	static mem_cell& get_cell(void* user_mem)
 	{
