@@ -33,7 +33,7 @@ public:
 	void* alloc();
 	void free(void* user_mem);
 	// NOTICE!! this function is expensive
-	void cleanup_free_blocks();
+	size_t cleanup_free_blocks();
 
 private:
 	void _push_cell(mem_cell& c);

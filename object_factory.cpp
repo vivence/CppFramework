@@ -12,9 +12,7 @@ object_factory::~object_factory()
 	_handle_delay_destroy();
 	_recyle_temp_refs();
 	// 临时实现
-	delete[] _test_buf;
 	delete[] _temp_buf;
-	_test_buf = nullptr;
 	_temp_buf = nullptr;
 }
 
@@ -29,7 +27,7 @@ void object_factory::delete_obj_immediately(object* p_obj)
 	object_temp_ref_destroyed_pointers::add_destroyed_pointer(p_obj);
 #endif // REF_SAFE_CHECK
 	p_obj->~object();
-	// todo: 归还到内存池
+	_mem_pool.free(p_obj);
 }
 
 void object_factory::on_frame_end()

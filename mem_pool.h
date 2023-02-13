@@ -29,6 +29,7 @@ class mem_pool : noncopyable {
 	};
 
 	_pool_pointer_type _pools[mem_cell::PoolCount];
+	size_t _cleanup_index = 0;
 
 	mem_raw_pool* _get_pool(void* user_mem)
 	{
@@ -41,10 +42,21 @@ public:
 
 public:
 	template<size_t _ID, typename _T>
-	void* alloc();
+	void* alloc()
+	{
+		static_assert(_config::pool_meta<_T>::PoolIndex < mem_cell::PoolCount, "PoolIndex is too large");
+		auto user_mem = _pool_creater<_ID, _config::pool_meta<_T>::PoolIndex, _config::cell_meta<_T>::Size, _config::cell_meta<_T>::Count>::get_pool(_pools).alloc();
+		if (nullptr != user_mem)
+		{
+			mem_cell::get_cell(user_mem).set_pool_index(_config::pool_meta<_T>::PoolIndex);
+		}
+		return user_mem;
+	}
 	template<typename _T>
 	void* alloc() { return alloc<0, _T>(); }
 	bool free(void* user_mem);
+
+	void cleanup_step();
 
 public:
 	struct info_for_global {
@@ -63,19 +75,6 @@ public:
 		static const size_t pool_index = _config::pool_meta<_T>::PoolIndex;
 	};
 };
-
-template<size_t _ID, typename _T>
-void* mem_pool::alloc()
-{
-	static_assert(_config::pool_meta<_T>::PoolIndex < mem_cell::PoolCount, "PoolIndex is too large");
-	auto user_mem = _pool_creater<_ID, _config::pool_meta<_T>::PoolIndex, _config::cell_meta<_T>::Size, _config::cell_meta<_T>::Count>::get_pool(_pools).alloc();
-	if (nullptr == user_mem)
-	{
-		return nullptr;
-	}
-	auto p_pool = _get_pool(user_mem);
-	return nullptr != p_pool ? p_pool->alloc() : nullptr;
-}
 
 template<size_t _ID>
 class mem_pool_for_id : noncopyable {

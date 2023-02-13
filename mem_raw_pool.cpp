@@ -29,8 +29,9 @@ void mem_raw_pool::free(void* user_mem)
 /// <summary>
 /// 如果此函数耗时过高，请参看<see cref="_block_is_free"/>和<see cref="_pop_block_cells_from_free_link"/>的优化注释
 /// </summary>
-void mem_raw_pool::cleanup_free_blocks()
+size_t mem_raw_pool::cleanup_free_blocks()
 {
+	size_t cleanup_count = 0;
 	for (int i = (int)_blocks.size() - 1; i >= 0; --i)
 	{
 		const auto block = _blocks[i];
@@ -42,8 +43,11 @@ void mem_raw_pool::cleanup_free_blocks()
 			::operator delete(block);
 			// 3.
 			_blocks.pop_back();
+			// 4.
+			++cleanup_count;
 		}
 	}
+	return cleanup_count;
 }
 
 void mem_raw_pool::_push_cell(mem_cell& c)
@@ -82,7 +86,7 @@ void mem_raw_pool::_push_block_cells_into_free_link(void* block)
 	for (size_t i = 0; i < _cell_count; ++i)
 	{
 		_push_cell(*p_cell);
-		p_cell = (mem_cell*)((intptr_t)block + _cell_size);
+		p_cell = (mem_cell*)((intptr_t)p_cell + _cell_size);
 	}
 }
 
