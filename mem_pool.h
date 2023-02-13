@@ -28,8 +28,7 @@ class mem_pool : noncopyable {
 		}
 	};
 
-	enum { _PoolCount = (int64_t)(mem_cell::head_type)~0 / 2 };
-	_pool_pointer_type _pools[_PoolCount];
+	_pool_pointer_type _pools[mem_cell::PoolCount];
 	
 public:
 	mem_pool() = default;
@@ -39,7 +38,7 @@ public:
 	template<size_t _ID, typename _T>
 	void* alloc()
 	{
-		static_assert(_config::pool_meta<_T>::PoolIndex < _PoolCount, "PoolIndex is too large");
+		static_assert(_config::pool_meta<_T>::PoolIndex < mem_cell::PoolCount, "PoolIndex is too large");
 		return _pool_creater<_ID, _config::pool_meta<_T>::PoolIndex, _config::cell_meta<_T>::Size, _config::cell_meta<_T>::Count>::get_pool(_pools).alloc();
 	}
 

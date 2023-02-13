@@ -26,6 +26,9 @@ void mem_raw_pool::free(void* user_mem)
 	_push_cell(mem_cell::get_cell(user_mem));
 }
 
+/// <summary>
+/// 如果此函数耗时过高，请参看<see cref="_block_is_free"/>和<see cref="_pop_block_cells_from_free_link"/>的优化注释
+/// </summary>
 void mem_raw_pool::cleanup_free_blocks()
 {
 	for (int i = (int)_blocks.size() - 1; i >= 0; --i)
@@ -83,6 +86,9 @@ void mem_raw_pool::_push_block_cells_into_free_link(void* block)
 	}
 }
 
+/// <summary>
+/// 如果此函数耗时过高，可以为每个block增加一个计数，在push和pop时记录，由计数来确定是否free
+/// </summary>
 bool mem_raw_pool::_block_is_free(void* block)
 {
 	mem_cell* p_cell = (mem_cell*)block;
@@ -98,6 +104,9 @@ bool mem_raw_pool::_block_is_free(void* block)
 	return true;
 }
 
+/// <summary>
+/// 如果此函数耗时过高，可以在cell中增加前向节点指针将单向列表改为双向列表，以提升节点断开的执行效率
+/// </summary>
 void mem_raw_pool::_pop_block_cells_from_free_link(void* block)
 {
 	if (nullptr == _free_head)

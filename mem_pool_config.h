@@ -22,7 +22,7 @@ public:
 	template<typename _T>
 	class cell_meta {
 		// cell raw min size is sizeof(_cell)
-		enum { _RawSize = get_max<sizeof(_T) + mem_cell::USER_MEM_OFFSET, sizeof(mem_cell)>::Value };
+		enum { _RawSize = get_max<sizeof(_T) + mem_cell::UserMemOffset, sizeof(mem_cell)>::Value };
 	public:
 		enum {
 			Size = _cell_size<_RawSize>::Value,

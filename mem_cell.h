@@ -18,6 +18,9 @@ struct mem_cell {
 	{
 #endif // COMPACT_CELL
 
+		/// <summary>
+		/// 如果高频率、高数量分配明显小于sizeof(mem_cell)的内存，可以考虑将p_next_cell优化为一字节的block内索引（会略微增加链表操作的开销）
+		/// </summary>
 		mem_cell* p_next_cell = nullptr;
 #pragma warning(disable : 4200)
 		uint8_t user_mem[0];
@@ -25,16 +28,19 @@ struct mem_cell {
 #if COMPACT_CELL
 	};
 #endif // COMPACT_CELL
-
+	enum {
+		PoolCount = (int64_t)(mem_cell::head_type)~0 / 2,
+		CellCount = (int64_t)(mem_cell::head_type)~0 / 2,
 #if COMPACT_CELL
-	enum { USER_MEM_OFFSET = sizeof(head_type) };
+		UserMemOffset = sizeof(head_type) 
 #else
-	enum { USER_MEM_OFFSET = sizeof(head_type) + sizeof(mem_cell*) };
+		UserMemOffset = sizeof(head_type) + sizeof(mem_cell*)
 #endif // COMPACT_CELL
+	};
 
 	static mem_cell& get_cell(void* user_mem)
 	{
-		return *(mem_cell*)((intptr_t)user_mem - USER_MEM_OFFSET);
+		return *(mem_cell*)((intptr_t)user_mem - UserMemOffset);
 	}
 };
 #pragma pack(pop)
