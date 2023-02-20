@@ -64,7 +64,7 @@ mem_cell& mem_raw_pool::_pop_cell()
 
 	auto p_cell = _free_head;
 	_free_head = _free_head->p_next_cell;
-	p_cell->p_next_cell = nullptr;
+	p_cell->mark_used();
 	return *p_cell;
 }
 
@@ -98,7 +98,7 @@ bool mem_raw_pool::_block_is_free(void* block)
 	mem_cell* p_cell = (mem_cell*)block;
 	for (size_t i = 0; i < _cell_count; ++i)
 	{
-		if (nullptr == p_cell->p_next_cell)
+		if (p_cell->is_used())
 		{
 			// not free
 			return false;

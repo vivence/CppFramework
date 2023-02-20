@@ -32,7 +32,15 @@ public:
 
 	template<typename _T>
 	struct pool_meta {
-		enum { PoolIndex = cell_meta<_T>::Size / _CellUnitSize };
+		enum { PoolIndex = cell_meta<_T>::Size / _CellUnitSize - 1 };
+	};
+
+	template<size_t _PoolIndex>
+	struct cell_meta_for_pool {
+		enum {
+			Size = (_PoolIndex + 1) * _CellUnitSize,
+			Count = _cell_count<_BlockMaxSize / Size>::Value
+		};
 	};
 };
 

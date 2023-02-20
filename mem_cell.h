@@ -68,6 +68,15 @@ public:
 	//	return head & _BlockIndexMask;
 	//}
 
+	void mark_used()
+	{
+		p_next_cell = (mem_cell*)(intptr_t)1;
+	}
+	bool is_used() const 
+	{
+		return (intptr_t)1 == (intptr_t)p_next_cell;
+	}
+
 	static mem_cell& get_cell(void* user_mem)
 	{
 		return *(mem_cell*)((intptr_t)user_mem - UserMemOffset);

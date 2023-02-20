@@ -9,8 +9,11 @@
 CORE_NAMESPACE_BEG
 
 struct mem_cell;
+class test_mem_pool;
 
 class mem_raw_pool : noncopyable {
+	friend class test_mem_pool;
+
 	using _block_array_type = std::vector<void*>;
 	_block_array_type _blocks;
 	mem_cell* _free_head;
