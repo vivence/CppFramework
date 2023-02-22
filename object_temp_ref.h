@@ -53,6 +53,7 @@ public:
 private:
 	friend class object_factory;
 	explicit object_temp_ref(_T* p) : ref<_T>(p) {}
+	explicit object_temp_ref(const ref<_T>& obj_ref) : ref<_T>(obj_ref) {}
 
 #if REF_SAFE_CHECK
 public:

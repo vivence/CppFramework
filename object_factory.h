@@ -23,7 +23,7 @@ class object_factory final : noncopyable {
 	mem_pool _mem_pool;
 	_temp_ref_mem_pool_pointer_type _p_temp_ref_pool;
 
-	object::_id_type _next_object_id = 1;
+	object::_id_type _next_object_id = object::_FIRST_ID;
 	_object_array_type _delay_destroy_objs;
 
 public:
@@ -55,12 +55,24 @@ private: // friend functions
 		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
 		return object_weak_ref<_T>(p_obj);
 	}
+	template<typename _T>
+	object_weak_ref<_T> get_weak_ref(const ref<_T>& obj_ref)
+	{
+		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
+		return object_weak_ref<_T>(obj_ref);
+	}
 
 	template<typename _T>
 	object_temp_ref<_T>& get_temp_ref(_T* p_obj)
 	{
 		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
 		return *new(_alloc_temp_ref_mem()) object_temp_ref<_T>(p_obj);
+	}
+	template<typename _T>
+	object_temp_ref<_T>& get_temp_ref(const ref<_T>& obj_ref)
+	{
+		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
+		return *new(_alloc_temp_ref_mem()) object_temp_ref<_T>(obj_ref);
 	}
 };
 
@@ -76,6 +88,11 @@ _T* object_factory::new_obj(_Args&&... args)
 	}
 
 	auto p = new(mem) _T(std::forward<_Args>(args)...);
+	if (nullptr == p)
+	{
+		return nullptr;
+	}
+
 	auto p_obj = static_cast<object*>(p);
 	p_obj->_instance_id = _next_object_id++;
 	return p;

@@ -18,6 +18,7 @@ class object : noncopyable, dis_new {
     typedef int _id_type;
 
     static const _id_type _INVALID_ID = 0;
+    static const _id_type _FIRST_ID = 1;
 
     _id_type _instance_id;
 

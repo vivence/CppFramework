@@ -22,13 +22,24 @@ private:
         , _obj_id((nullptr != p) ? static_cast<object*>(p)->_instance_id : object::_INVALID_ID)
     {
     }
+    explicit object_weak_ref(const ref<_T>& obj_ref)
+        : _p(const_cast<_T*>(obj_ref.operator->()))
+        , _obj_id((nullptr != obj_ref) ? obj_ref->_instance_id : object::_INVALID_ID)
+    {
+    }
 
 public:
     object_weak_ref() : _obj_id(object::_INVALID_ID), _p(nullptr) {}
 
 public:
-    const _T* operator->() const { return _safe_ref(); }
-    _T* operator->() { return _safe_ref(); }
+    /// <summary>
+    /// called after checking not equal to nullptr, or may throw null pointer exception
+    /// </summary>
+    const _T* operator->() const throw() { return _safe_ref(); }
+    /// <summary>
+    /// called after checking not equal to nullptr, or may throw null pointer exception
+    /// </summary>
+    _T* operator->() throw() { return _safe_ref(); }
 private:
     _T* _safe_ref() const
     {

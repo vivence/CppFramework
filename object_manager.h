@@ -19,9 +19,10 @@ public:
 	typedef _TID id_type;
     using weak_ref = object_weak_ref<_TObj>;
     using temp_ref = object_temp_ref<_TObj>;
+    using ref = _TObj*;
 
 private:
-	using _map_type = std::map<id_type, _TObj*>;
+	using _map_type = std::map<id_type, ref>;
 
 private:
     _map_type _map;
@@ -36,14 +37,51 @@ public:
     weak_ref create(id_type id, _Args&&... args);
     template<typename _T, typename ..._Args>
     object_weak_ref<_T> create(id_type id, _Args&&... args);
+
+    /// <summary>
+    /// deconstruct in frame end
+    /// </summary>
     void destroy(id_type id);
+
+    /// <summary>
+    /// deconstruct immediately
+    /// </summary>
     void destroy_immediately(id_type id);
 
     weak_ref try_get(id_type id) const;
     temp_ref& try_get_temp(id_type id) const;
-    // for_each
-    // find_if
-    // find_all_if
+
+    /// <summary>
+    /// DO NOT call object_manager::create or object_manager::destroy in pred
+    /// </summary>
+    /// <param name="pred">is functional: bool pred(object_temp_ref &amp; obj_temp_ref)</param>
+    /// <returns>object_weak_ref&lt;_TObj&gt;</returns>
+    template<typename _P>
+    weak_ref find_if(_P& pred) const;
+
+    /// <summary>
+    /// DO NOT call object_manager::create or object_manager::destroy in pred
+    /// </summary>
+    /// <param name="pred">is functional: bool pred(object_temp_ref &amp; obj_temp_ref)</param>
+    /// <returns>object_temp_ref&lt;_TObj&gt;</returns>
+    template<typename _P>
+    temp_ref& find_temp_if(_P& pred) const;
+
+    // todo: find_all_if
+
+    /// <summary>
+    /// DO NOT call object_manager::create or object_manager::destroy in func
+    /// </summary>
+    /// <param name="func">is functional: void func(object_temp_ref &amp; obj_temp_ref)</param>
+    template<typename _F>
+    void for_each(_F& func) const;
+
+    /// <summary>
+    /// DO NOT call object_manager::create or object_manager::destroy in func
+    /// </summary>
+    /// <param name="func">is functional: bool func(object_temp_ref &amp; obj_temp_ref), return whether to continue</param>
+    template<typename _P>
+    void for_each_interruptible(_P& pred) const;
 
 private:
     void _destroy(id_type id, void (object_factory::* delete_fuc)(object*));
@@ -52,7 +90,7 @@ private:
 template<typename _TID, typename _TObj>
 object_manager<_TID, _TObj>::~object_manager()
 {
-    for (const auto& kv : _map)
+    for (auto& kv : _map)
     {
         _obj_factory.delete_obj(kv.second);
     }
@@ -61,7 +99,7 @@ object_manager<_TID, _TObj>::~object_manager()
 
 template<typename _TID, typename _TObj>
 template<typename ..._Args>
-object_weak_ref<_TObj> object_manager<_TID, _TObj>::create(id_type id, _Args&&... args)
+typename object_manager<_TID, _TObj>::weak_ref object_manager<_TID, _TObj>::create(id_type id, _Args&&... args)
 {
     return create<_TObj>(id, std::forward<_Args>(args)...);
 }
@@ -72,16 +110,16 @@ object_weak_ref<_T> object_manager<_TID, _TObj>::create(id_type id, _Args&&... a
 {
     static_assert(std::is_base_of<_TObj, _T>::value, "_T must be inherit from _TObj");
 
-    _T* pObj = nullptr;
+    _T* p_obj = nullptr;
 
     auto iter = _map.find(id);
     if (_map.end() == iter)
     {
-        pObj = _obj_factory.new_obj<_T>(id, std::forward<_Args>(args)...);
-        _map.insert(std::make_pair(id, pObj));
+        p_obj = _obj_factory.new_obj<_T>(id, std::forward<_Args>(args)...);
+        _map.insert(std::make_pair(id, ref(p_obj)));
     }
 
-    return _obj_factory.get_weak_ref(pObj);
+    return _obj_factory.get_weak_ref(p_obj);
 }
 
 template<typename _TID, typename _TObj>
@@ -121,6 +159,58 @@ typename object_manager<_TID, _TObj>::temp_ref& object_manager<_TID, _TObj>::try
 }
 
 template<typename _TID, typename _TObj>
+template<typename _P>
+typename object_manager<_TID, _TObj>::weak_ref object_manager<_TID, _TObj>::find_if(_P& pred) const
+{
+    for (const auto& kv : _map)
+    {
+        if (pred(_obj_factory.get_temp_ref(kv.second)))
+        {
+            return _obj_factory.get_weak_ref(kv.second);
+        }
+    }
+    return weak_ref::null_ref;
+}
+
+template<typename _TID, typename _TObj>
+template<typename _P>
+typename object_manager<_TID, _TObj>::temp_ref& object_manager<_TID, _TObj>::find_temp_if(_P& pred) const
+{
+    for (const auto& kv : _map)
+    {
+        auto& obj_temp_ref = _obj_factory.get_temp_ref(kv.second);
+        if (pred(obj_temp_ref))
+        {
+            return obj_temp_ref;
+        }
+    }
+    return temp_ref::null_ref;
+}
+
+template<typename _TID, typename _TObj>
+template<typename _F>
+void object_manager<_TID, _TObj>::for_each(_F& func) const
+{
+    for (const auto& kv : _map)
+    {
+        func(_obj_factory.get_temp_ref(kv.second));
+    }
+}
+
+template<typename _TID, typename _TObj>
+template<typename _P>
+void object_manager<_TID, _TObj>::for_each_interruptible(_P& pred) const
+{
+    for (const auto& kv : _map)
+    {
+        if (!pred(_obj_factory.get_temp_ref(kv.second)))
+        {
+            break;
+        }
+    }
+}
+
+template<typename _TID, typename _TObj>
 void object_manager<_TID, _TObj>::_destroy(id_type id, void (object_factory::* delete_fuc)(object*))
 {
     auto iter = _map.find(id);
@@ -129,10 +219,10 @@ void object_manager<_TID, _TObj>::_destroy(id_type id, void (object_factory::* d
         return;
     }
 
-    auto p_obj = iter->second;
+    auto obj_ref = iter->second;
     _map.erase(iter);
 
-    (_obj_factory.*delete_fuc)(p_obj);
+    (_obj_factory.*delete_fuc)(obj_ref);
 }
 
 CORE_NAMESPACE_END
