@@ -19,10 +19,6 @@
 
 CORE_NAMESPACE_BEG
 
-// todo: 实现自定义allocator
-template<typename _T>
-using allocator = std::allocator<_T>;
-/*
 template<typename _T>
 class allocator
 {
@@ -42,6 +38,10 @@ public:
 
     allocator() = default;
     ~allocator() = default;
+    allocator(const allocator&) noexcept {};
+    template<typename _U>
+    allocator(const allocator<_U>&) noexcept {};
+    allocator& operator =(const allocator&) = delete;
 
     pointer allocate(size_type count) 
     {
@@ -84,10 +84,21 @@ public:
 
     size_type max_size() const 
     {
-        return std::numeric_limits<size_type>::max();
+        return std::numeric_limits<size_type>::max() / sizeof(_T);
     }
 };
-*/
+template <class _T, class _P>
+bool operator==(const allocator<_T>&, const allocator<_P>&) noexcept 
+{
+    return true;
+}
+template <class _T, class _P>
+bool operator!=(const allocator<_T>&, const allocator<_P>&) noexcept 
+{
+    return false;
+}
+
+// -------------------------------------
 
 using string = std::basic_string<char, std::char_traits<char>, allocator<char>>;
 using wstring = std::basic_string<wchar_t, std::char_traits<wchar_t>, allocator<wchar_t>>;
