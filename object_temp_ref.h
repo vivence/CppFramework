@@ -4,6 +4,7 @@
 #include "core.h"
 #include "noncopyable.h"
 #include "ref.h"
+#include <type_traits>
 
 #if REF_SAFE_CHECK
 #include "enviroment.h"
@@ -43,6 +44,8 @@ class object_temp_ref_destroyed_pointers {
 
 template<typename _T>
 class object_temp_ref : public ref<_T>, noncopyable {
+	static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
+
 	void* operator new(size_t, void* mem) noexcept { return mem; }
 	inline void operator delete(void*, void* mem) {}
 	friend class object_factory;

@@ -19,6 +19,11 @@ class mem_pool_config {
 	struct _cell_count<0> { enum { Value = 1 }; }; // cell min cout is 1
 
 public:
+	enum {
+		CellUnitSize = _CellUnitSize,
+		BlockMaxSize = _BlockMaxSize
+	};
+
 	template<typename _T>
 	class cell_meta {
 		// cell raw min size is sizeof(_cell)

@@ -7,11 +7,14 @@
 #include "ref.h"
 #include "object.h"
 #include "enviroment.h"
+#include <type_traits>
 
 CORE_NAMESPACE_BEG
 
 template<typename _T>
 class object_weak_ref : dis_new {
+    static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
+
 	object::_id_type _obj_id;
     _T* _p;
 
