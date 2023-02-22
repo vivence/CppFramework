@@ -8,7 +8,9 @@
 #include "object_factory.h"
 #include "object_weak_ref.h"
 #include "object_temp_ref.h"
+#include "containers.h"
 #include <type_traits>
+#include <utility>
 #include <map>
 
 CORE_NAMESPACE_BEG
@@ -20,6 +22,8 @@ public:
     using weak_ref = object_weak_ref<_TObj>;
     using temp_ref = object_temp_ref<_TObj>;
     using ref = _TObj*;
+
+    using weak_ref_array = vector<weak_ref>;
 
 private:
 	using _map_type = std::map<id_type, ref>;
@@ -57,7 +61,7 @@ public:
     /// <param name="pred">is functional: bool pred(object_temp_ref &amp; obj_temp_ref)</param>
     /// <returns>object_weak_ref&lt;_TObj&gt;</returns>
     template<typename _P>
-    weak_ref find_if(_P& pred) const;
+    weak_ref find_if(_P pred) const;
 
     /// <summary>
     /// DO NOT call object_manager::create or object_manager::destroy in pred
@@ -65,23 +69,24 @@ public:
     /// <param name="pred">is functional: bool pred(object_temp_ref &amp; obj_temp_ref)</param>
     /// <returns>object_temp_ref&lt;_TObj&gt;</returns>
     template<typename _P>
-    temp_ref& find_temp_if(_P& pred) const;
+    temp_ref& find_temp_if(_P pred) const;
 
-    // todo: find_all_if
+    template<typename _P>
+    weak_ref_array find_all_if(_P pred) const;
 
     /// <summary>
     /// DO NOT call object_manager::create or object_manager::destroy in func
     /// </summary>
     /// <param name="func">is functional: void func(object_temp_ref &amp; obj_temp_ref)</param>
     template<typename _F>
-    void for_each(_F& func) const;
+    void for_each(_F func) const;
 
     /// <summary>
     /// DO NOT call object_manager::create or object_manager::destroy in func
     /// </summary>
     /// <param name="func">is functional: bool func(object_temp_ref &amp; obj_temp_ref), return whether to continue</param>
     template<typename _P>
-    void for_each_interruptible(_P& pred) const;
+    void for_each_interruptible(_P pred) const;
 
 private:
     void _destroy(id_type id, void (object_factory::* delete_fuc)(object*));
@@ -160,7 +165,7 @@ typename object_manager<_TID, _TObj>::temp_ref& object_manager<_TID, _TObj>::try
 
 template<typename _TID, typename _TObj>
 template<typename _P>
-typename object_manager<_TID, _TObj>::weak_ref object_manager<_TID, _TObj>::find_if(_P& pred) const
+typename object_manager<_TID, _TObj>::weak_ref object_manager<_TID, _TObj>::find_if(_P pred) const
 {
     for (const auto& kv : _map)
     {
@@ -174,7 +179,7 @@ typename object_manager<_TID, _TObj>::weak_ref object_manager<_TID, _TObj>::find
 
 template<typename _TID, typename _TObj>
 template<typename _P>
-typename object_manager<_TID, _TObj>::temp_ref& object_manager<_TID, _TObj>::find_temp_if(_P& pred) const
+typename object_manager<_TID, _TObj>::temp_ref& object_manager<_TID, _TObj>::find_temp_if(_P pred) const
 {
     for (const auto& kv : _map)
     {
@@ -188,8 +193,24 @@ typename object_manager<_TID, _TObj>::temp_ref& object_manager<_TID, _TObj>::fin
 }
 
 template<typename _TID, typename _TObj>
+template<typename _P>
+typename object_manager<_TID, _TObj>::weak_ref_array object_manager<_TID, _TObj>::find_all_if(_P pred) const
+{
+    weak_ref_array objs;
+    for (const auto& kv : _map)
+    {
+        auto& obj_temp_ref = _obj_factory.get_temp_ref(kv.second);
+        if (pred(obj_temp_ref))
+        {
+            objs.push_back(std::move(_obj_factory.get_weak_ref(kv.second)));
+        }
+    }
+    return std::move(objs);
+}
+
+template<typename _TID, typename _TObj>
 template<typename _F>
-void object_manager<_TID, _TObj>::for_each(_F& func) const
+void object_manager<_TID, _TObj>::for_each(_F func) const
 {
     for (const auto& kv : _map)
     {
@@ -199,7 +220,7 @@ void object_manager<_TID, _TObj>::for_each(_F& func) const
 
 template<typename _TID, typename _TObj>
 template<typename _P>
-void object_manager<_TID, _TObj>::for_each_interruptible(_P& pred) const
+void object_manager<_TID, _TObj>::for_each_interruptible(_P pred) const
 {
     for (const auto& kv : _map)
     {
