@@ -15,6 +15,10 @@
 CORE_NAMESPACE_BEG
 
 class temp_ref_mem_pool;
+template<typename _TID, typename _TObj>
+class object_manager;
+template<typename _TObj>
+class object_manager_singleton;
 
 class object_factory final : noncopyable {
 	using _object_array_type = std::vector<object*>;
@@ -43,6 +47,8 @@ private: // private functions
 private: // friend functions
 	template<typename _TID, typename _TObj>
 	friend class object_manager;
+	template<typename _TObj>
+	friend class object_manager_singleton;
 
 	template<typename _T, typename ..._Args>
 	_T* new_obj(_Args&&... args);

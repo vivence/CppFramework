@@ -1,7 +1,0 @@
-#include "mem_pool.h"
-
-CORE_NAMESPACE_BEG
-
-
-
-CORE_NAMESPACE_END
