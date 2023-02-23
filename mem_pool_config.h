@@ -10,61 +10,67 @@ CORE_NAMESPACE_BEG
 
 template<size_t _CellUnitSize, size_t _BlockMaxSize>
 class mem_pool_config {
-
-	template<size_t _TSize> // raw cell size is the min multiples of _CellUnitSize
-	struct _cell_size { enum { Value = (_TSize / _CellUnitSize + zero_or_one<_TSize % _CellUnitSize>::Value) * _CellUnitSize }; };
-
-	template<size_t _CellCount>
-	struct _cell_count { enum { Value = _CellCount }; };
-	template<>
-	struct _cell_count<0> { enum { Value = 1 }; }; // cell min cout is 1
-
 public:
 	enum {
 		CellUnitSize = _CellUnitSize,
 		BlockMaxSize = _BlockMaxSize
 	};
 
-	template<typename _T>
-	class cell_meta {
+	struct calc {
+
 		// cell raw min size is sizeof(_cell)
-		enum { _RawSize = get_max<sizeof(_T) + mem_cell::UserMemOffset, sizeof(mem_cell)>::Value };
-	public:
-		enum {
-			Size = _cell_size<_RawSize>::Value,
-			Count = _cell_count<_BlockMaxSize / Size>::Value
-		};
+		constexpr static size_t cell_raw_size(size_t user_mem_size)
+		{
+			return std::max(user_mem_size + mem_cell::UserMemOffset, sizeof(mem_cell));
+		}
+
+		// all indexes are divided according to multiples of CellUnitSize
+		constexpr static size_t pool_index(size_t user_mem_size)
+		{
+			auto raw_size = cell_raw_size(user_mem_size);
+			return raw_size / _CellUnitSize - (0 < (raw_size % _CellUnitSize) ? 0 : 1);
+		}
+
+		// cell size is the min multiples of CellUnitSize
+		constexpr static size_t cell_size(size_t user_mem_size)
+		{
+			auto raw_size = cell_raw_size(user_mem_size);
+			return _CellUnitSize * (pool_index(user_mem_size) + 1);
+		}
+
+		// cell count is (BlockMaxSize / cell size), but min count is 1
+		constexpr static size_t cell_count_by_cell_size(size_t c_size)
+		{
+			auto count = _BlockMaxSize / c_size;
+			if (0 == count)
+			{
+				count = 1;
+			}
+			return count;
+		}
+
+		constexpr static size_t cell_count(size_t user_mem_size)
+		{
+			return cell_count_by_cell_size(cell_size(user_mem_size));
+		}
+
+		constexpr static size_t cell_size_by_pool_index(size_t p_index)
+		{
+			return _CellUnitSize * (p_index + 1);
+		}
+
+		constexpr static size_t cell_count_by_pool_index(size_t p_index)
+		{
+			return cell_count_by_cell_size(cell_size_by_pool_index(p_index));
+		}
 	};
 
 	template<typename _T>
-	struct pool_meta {
-		enum { PoolIndex = cell_meta<_T>::Size / _CellUnitSize - 1 };
+	struct type_meta {
+		static const size_t cell_size = calc::cell_size(sizeof(_T));
+		static const size_t cell_count = calc::cell_count(sizeof(_T));
+		static const size_t pool_index = calc::pool_index(sizeof(_T));
 	};
-
-	template<size_t _PoolIndex>
-	struct cell_meta_for_pool {
-		enum {
-			Size = (_PoolIndex + 1) * _CellUnitSize,
-			Count = _cell_count<_BlockMaxSize / Size>::Value
-		};
-	};
-
-	static size_t get_cell_raw_size(size_t user_mem_size)
-	{
-		return std::max(user_mem_size + mem_cell::UserMemOffset, sizeof(mem_cell));
-	}
-
-	static size_t get_pool_index(size_t user_mem_size)
-	{
-		auto raw_size = get_cell_raw_size(user_mem_size);
-		return raw_size / CellUnitSize - (0 < (raw_size % CellUnitSize) ? 0 : 1);
-	}
-
-	static size_t get_cell_size(size_t user_mem_size)
-	{
-		auto raw_size = get_cell_raw_size(user_mem_size);
-		return CellUnitSize * (get_pool_index(user_mem_size) + 1);
-	}
 };
 
 CORE_NAMESPACE_END
