@@ -32,19 +32,21 @@ class mem_pool_configable : noncopyable {
 
 	template<size_t _PoolIndex>
 	struct _pool_creater {
-		using cell_meta_for_pool = typename _config::template cell_meta_for_pool<_PoolIndex>;
 		static void create(_pool_pointer_type pools[])
 		{
-			pools[_PoolIndex] = _pool_pointer_type(new mem_raw_pool(cell_meta_for_pool::Size, cell_meta_for_pool::Count));
+			pools[_PoolIndex] = _pool_pointer_type(new mem_raw_pool(
+				_config::calc::cell_size_by_pool_index(_PoolIndex), 
+				_config::calc::cell_count_by_pool_index(_PoolIndex)));
 			_pool_creater<_PoolIndex - 1>::create(pools);
 		}
 	};
 	template<>
 	struct _pool_creater<0> {
-		using cell_meta_for_pool = typename _config::template cell_meta_for_pool<0>;
 		static void create(_pool_pointer_type pools[])
 		{
-			pools[0] = _pool_pointer_type(new mem_raw_pool(cell_meta_for_pool::Size, cell_meta_for_pool::Count));
+			pools[0] = _pool_pointer_type(new mem_raw_pool(
+				_config::calc::cell_size_by_pool_index(0),
+				_config::calc::cell_count_by_pool_index(0)));
 		}
 	};
 
@@ -58,11 +60,12 @@ public:
 	template<typename _T>
 	void* alloc()
 	{
-		static_assert(typename _config::template pool_meta<_T>::PoolIndex < mem_cell::PoolCount, "PoolIndex is too large");
-		auto user_mem = _pools[_config::template pool_meta<_T>::PoolIndex]->alloc();
+		using type_meta = typename _config::template type_meta<_T>;
+		static_assert(type_meta::pool_index < mem_cell::PoolCount, "pool_index is too large");
+		auto user_mem = _pools[type_meta::pool_index]->alloc();
 		if (nullptr != user_mem)
 		{
-			mem_cell::get_cell(user_mem).set_pool_index(_config::template pool_meta<_T>::PoolIndex);
+			mem_cell::get_cell(user_mem).set_pool_index(type_meta::pool_index);
 		}
 		return user_mem;
 	}
@@ -79,25 +82,26 @@ public:
 		static const size_t cell_raw_size_min = sizeof(mem_cell);
 		static const size_t cell_head_size = sizeof(mem_cell::head_type);
 		static const size_t user_mem_offset_in_cell = mem_cell::UserMemOffset;
-		static const size_t min_cell_size = _config::cell_meta_for_pool<0>::Size;
-		static const size_t min_cell_count = _config::cell_meta_for_pool<0>::Count;
-		static const size_t max_cell_size = _config::cell_meta_for_pool<mem_cell::PoolCount - 1>::Size;
-		static const size_t max_cell_count = _config::cell_meta_for_pool<mem_cell::PoolCount - 1>::Count;
+		static const size_t min_cell_size = _config::calc::cell_size_by_pool_index(0);
+		static const size_t min_cell_count = _config::calc::cell_count_by_pool_index(0);
+		static const size_t max_cell_size = _config::calc::cell_size_by_pool_index(mem_cell::PoolCount - 1);
+		static const size_t max_cell_count = _config::calc::cell_count_by_pool_index(mem_cell::PoolCount - 1);
 		static const size_t max_type_size = max_cell_size - user_mem_offset_in_cell;
 	};
 	template<typename _T>
 	struct info_for_type {
+		using type_meta = typename _config::template type_meta<_T>;
 		static const size_t cell_raw_size = sizeof(_T);
-		static const size_t cell_size = _config::template cell_meta<_T>::Size;
-		static const size_t cell_count_in_block = _config::template cell_meta<_T>::Count;
-		static const size_t pool_index = _config::template pool_meta<_T>::PoolIndex;
+		static const size_t cell_size = type_meta::cell_size;
+		static const size_t cell_count_in_block = type_meta::cell_count;
+		static const size_t pool_index = type_meta::pool_index;
 	};
 };
 
 template<size_t _CellUnitSize, size_t _BlockMaxSize>
 void* mem_pool_configable<_CellUnitSize, _BlockMaxSize>::alloc(size_t user_mem_size)
 {
-	auto pool_index = _config::get_pool_index(user_mem_size);
+	auto pool_index = _config::calc::pool_index(user_mem_size);
 	if (pool_index < mem_cell::PoolCount)
 	{
 		auto user_mem = _pools[pool_index]->alloc();
