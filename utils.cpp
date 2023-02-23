@@ -20,6 +20,12 @@ std::string string_format_utils::format_size(size_t size)
     static const size_t KB = 1024 * B;
     static const size_t MB = 1024 * KB;
     static const size_t GB = 1024 * MB;
+    if (0 == size)
+    {
+        std::stringstream ss;
+        ss << size;
+        return std::move(ss.str());
+    }
 
     size_t origin = size;
 
