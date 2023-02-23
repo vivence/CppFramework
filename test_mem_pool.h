@@ -20,6 +20,9 @@ public:
 	bool test_free();
 	bool test_cleanup_step();
 
+public:
+	void test_performance();
+
 private:
 	static size_t _get_free_cell_count(const mem_raw_pool& raw_pool);
 };

@@ -222,6 +222,49 @@ bool test_mem_pool::test_cleanup_step()
 	return true;
 }
 
+void _test_template_alloc_performance(size_t test_count)
+{
+	mem_pool mp;
+	for (size_t i = 0; i < test_count; i++)
+	{
+		auto p = mp.alloc<int>();
+		mp.free(p);
+	}
+}
+
+void _test_alloc_performance(size_t test_count)
+{
+	auto size = sizeof(int);
+	mem_pool mp;
+	for (size_t i = 0; i < test_count; i++)
+	{
+		auto p = mp.alloc(size);
+		mp.free(p);
+	}
+}
+
+void test_mem_pool::test_performance()
+{
+	clock_t start, end;
+	size_t test_count = 10000 * 100;
+	_out << "test_count: " << string_format_utils::format_count(test_count) << std::endl;
+	_out << "clocks per second: " << string_format_utils::format_count(CLOCKS_PER_SEC) << std::endl;
+
+	start = clock();
+	_test_template_alloc_performance(test_count);
+	end = clock();
+	auto spent_1 = end - start;
+	_out << "template alloc spent clocks: " << spent_1 << std::endl;
+
+	start = clock();
+	_test_template_alloc_performance(test_count);
+	end = clock();
+	auto spent_2 = end - start;
+	_out << "alloc spent clocks: " << spent_2 << std::endl;
+
+	_out << "template alloc diff = " << spent_1 - spent_2 << std::endl;
+}
+
 size_t test_mem_pool::_get_free_cell_count(const mem_raw_pool& raw_pool)
 {
 	size_t free_cell_count = 0;

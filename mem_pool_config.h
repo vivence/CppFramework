@@ -4,6 +4,7 @@
 
 #include "core.h"
 #include "utils.h"
+#include <utility>
 
 CORE_NAMESPACE_BEG
 
@@ -11,7 +12,7 @@ template<size_t _CellUnitSize, size_t _BlockMaxSize>
 class mem_pool_config {
 
 	template<size_t _TSize> // raw cell size is the min multiples of _CellUnitSize
-	struct _cell_size { enum { Value = (_TSize / _CellUnitSize + 1) * _CellUnitSize }; };
+	struct _cell_size { enum { Value = (_TSize / _CellUnitSize + zero_or_one<_TSize % _CellUnitSize>::Value) * _CellUnitSize }; };
 
 	template<size_t _CellCount>
 	struct _cell_count { enum { Value = _CellCount }; };
@@ -47,6 +48,23 @@ public:
 			Count = _cell_count<_BlockMaxSize / Size>::Value
 		};
 	};
+
+	static size_t get_cell_raw_size(size_t user_mem_size)
+	{
+		return std::max(user_mem_size + mem_cell::UserMemOffset, sizeof(mem_cell));
+	}
+
+	static size_t get_pool_index(size_t user_mem_size)
+	{
+		auto raw_size = get_cell_raw_size(user_mem_size);
+		return raw_size / CellUnitSize - (0 < (raw_size % CellUnitSize) ? 0 : 1);
+	}
+
+	static size_t get_cell_size(size_t user_mem_size)
+	{
+		auto raw_size = get_cell_raw_size(user_mem_size);
+		return CellUnitSize * (get_pool_index(user_mem_size) + 1);
+	}
 };
 
 CORE_NAMESPACE_END

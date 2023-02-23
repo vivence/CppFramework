@@ -1,10 +1,9 @@
-#include "mem_pool_printer.h"
-#include <sstream>
+#include "utils.h"
 #include <iomanip>
 
 CORE_NAMESPACE_BEG
 
-size_t mem_pool_printer::_format_size(std::stringstream& ss, size_t size, size_t formatSize, const char* suffix)
+size_t string_format_utils::format_size(std::stringstream& ss, size_t size, size_t formatSize, const char* suffix)
 {
     if (formatSize <= size)
     {
@@ -15,7 +14,7 @@ size_t mem_pool_printer::_format_size(std::stringstream& ss, size_t size, size_t
     return 0;
 }
 
-std::string mem_pool_printer::_format_size(size_t size)
+std::string string_format_utils::format_size(size_t size)
 {
     static const size_t B = 1;
     static const size_t KB = 1024 * B;
@@ -25,10 +24,10 @@ std::string mem_pool_printer::_format_size(size_t size)
     size_t origin = size;
 
     std::stringstream ss;
-    size = size - _format_size(ss, size, GB, "G");
-    size = size - _format_size(ss, size, MB, "M");
-    size = size - _format_size(ss, size, KB, "K");
-    _format_size(ss, size, B, "B");
+    size = size - format_size(ss, size, GB, "G");
+    size = size - format_size(ss, size, MB, "M");
+    size = size - format_size(ss, size, KB, "K");
+    format_size(ss, size, B, "B");
 
     if (size != origin)
     {
@@ -37,7 +36,7 @@ std::string mem_pool_printer::_format_size(size_t size)
     return std::move(ss.str());
 }
 
-void mem_pool_printer::_format_count(std::stringstream& ss, size_t size)
+void string_format_utils::format_count(std::stringstream& ss, size_t size)
 {
     static const size_t K = 1000;
     if (K > size)
@@ -46,15 +45,15 @@ void mem_pool_printer::_format_count(std::stringstream& ss, size_t size)
     }
     else
     {
-        _format_count(ss, size / K);
+        format_count(ss, size / K);
         ss << ',';
         ss << std::setw(3) << std::setfill('0') << size % K;
     }
 }
-std::string mem_pool_printer::_format_count(size_t size)
+std::string string_format_utils::format_count(size_t size)
 {
     std::stringstream ss;
-    _format_count(ss, size);
+    format_count(ss, size);
     return std::move(ss.str());
 }
 

@@ -66,6 +66,7 @@ public:
 		}
 		return user_mem;
 	}
+	void* alloc(size_t user_mem_size);
 	bool free(void* user_mem);
 
 	void cleanup_step();
@@ -82,6 +83,7 @@ public:
 		static const size_t min_cell_count = _config::cell_meta_for_pool<0>::Count;
 		static const size_t max_cell_size = _config::cell_meta_for_pool<mem_cell::PoolCount - 1>::Size;
 		static const size_t max_cell_count = _config::cell_meta_for_pool<mem_cell::PoolCount - 1>::Count;
+		static const size_t max_type_size = max_cell_size - user_mem_offset_in_cell;
 	};
 	template<typename _T>
 	struct info_for_type {
@@ -91,6 +93,22 @@ public:
 		static const size_t pool_index = _config::template pool_meta<_T>::PoolIndex;
 	};
 };
+
+template<size_t _CellUnitSize, size_t _BlockMaxSize>
+void* mem_pool_configable<_CellUnitSize, _BlockMaxSize>::alloc(size_t user_mem_size)
+{
+	auto pool_index = _config::get_pool_index(user_mem_size);
+	if (pool_index < mem_cell::PoolCount)
+	{
+		auto user_mem = _pools[pool_index]->alloc();
+		if (nullptr != user_mem)
+		{
+			mem_cell::get_cell(user_mem).set_pool_index(pool_index);
+		}
+		return user_mem;
+	}
+	return nullptr;
+}
 
 template<size_t _CellUnitSize, size_t _BlockMaxSize>
 bool mem_pool_configable<_CellUnitSize, _BlockMaxSize>::free(void* user_mem)
