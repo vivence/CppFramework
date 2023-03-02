@@ -30,10 +30,10 @@ public:
     template<typename _TT>
     friend bool operator ==(std::nullptr_t p, const ref<_TT>&wp);
     template<typename _TT>
-    friend bool operator !=(std::nullptr_t p, const ref<_TT>&wp);
+	friend bool operator !=(std::nullptr_t p, const ref<_TT>& wp);
 
 private:
-    ref* operator&() = delete;
+	ref* operator&() = delete;
 };
 
 template<typename _T>

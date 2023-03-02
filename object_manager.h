@@ -17,6 +17,7 @@ CORE_NAMESPACE_BEG
 
 template<typename _TID, typename _TObj>
 class object_manager final : noncopyable {
+    static_assert(std::is_base_of<object, _TObj>::value, "_TObj must be inherit from object");
 public:
 	typedef _TID id_type;
     using weak_ref = object_weak_ref<_TObj>;

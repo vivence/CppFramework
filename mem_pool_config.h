@@ -9,8 +9,7 @@
 CORE_NAMESPACE_BEG
 
 template<size_t _CellUnitSize, size_t _BlockMaxSize>
-class mem_pool_config {
-public:
+struct mem_pool_config {
 	enum {
 		CellUnitSize = _CellUnitSize,
 		BlockMaxSize = _BlockMaxSize
