@@ -34,7 +34,7 @@ public:
 
 public:
 	void* alloc();
-	void free(void* user_mem);
+	bool free(void* user_mem);
 	// NOTICE!! this function is expensive
 	size_t cleanup_free_blocks();
 

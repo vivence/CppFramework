@@ -1,5 +1,7 @@
 #include "mem_raw_pool.h"
 #include "mem_cell.h"
+#include "enviroment.h"
+#include "bug_reporter.h"
 
 CORE_NAMESPACE_BEG
 
@@ -21,9 +23,18 @@ void* mem_raw_pool::alloc()
 	return (void*)_pop_cell().user_mem;
 }
 
-void mem_raw_pool::free(void* user_mem)
+bool mem_raw_pool::free(void* user_mem)
 {
-	_push_cell(mem_cell::get_cell(user_mem));
+	auto& c = mem_cell::get_cell(user_mem);
+	if (!c.is_used())
+	{
+		enviroment::get_current_env().get_bug_reporter().report(
+			BUG_TAG_MEM_RAW_POOL, 
+			"mem_raw_pool free failed: user_mem is not return from alloc()!");
+		return false;
+	}
+	_push_cell(c);
+	return true;
 }
 
 /// <summary>

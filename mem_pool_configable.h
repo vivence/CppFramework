@@ -122,8 +122,7 @@ bool mem_pool_configable<_CellUnitSize, _BlockMaxSize>::free(void* user_mem)
 	{
 		return false;
 	}
-	p_pool->free(user_mem);
-	return true;
+	return p_pool->free(user_mem);
 }
 
 template<size_t _CellUnitSize, size_t _BlockMaxSize>
