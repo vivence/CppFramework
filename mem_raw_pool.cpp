@@ -29,7 +29,7 @@ bool mem_raw_pool::free(void* user_mem)
 	if (!c.is_used())
 	{
 		enviroment::get_current_env().get_bug_reporter().report(
-			BUG_TAG_MEM_RAW_POOL, 
+			BUG_TAG_MEM_RAW_POOL,
 			"mem_raw_pool free failed: user_mem is not return from alloc()!");
 		return false;
 	}
@@ -63,6 +63,7 @@ size_t mem_raw_pool::cleanup_free_blocks()
 
 void mem_raw_pool::_push_cell(mem_cell& c)
 {
+	c.mark_unused();
 	c.p_next_cell = _free_head;
 	_free_head = &c;
 }

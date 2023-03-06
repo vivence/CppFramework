@@ -21,10 +21,11 @@ class object : noncopyable, dis_new {
     static const _id_type _FIRST_ID = 1;
 
     _id_type _instance_id;
+    void* _user_mem;
 
 protected:
-    object() : _instance_id(_INVALID_ID) {};
-    virtual ~object() { _instance_id = _INVALID_ID; }
+    object() : _instance_id(_INVALID_ID), _user_mem(nullptr) {};
+    virtual ~object() { _instance_id = _INVALID_ID; _user_mem = nullptr; }
 };
 
 CORE_NAMESPACE_END

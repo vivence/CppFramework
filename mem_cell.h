@@ -11,6 +11,9 @@ CORE_NAMESPACE_BEG
 #pragma pack(push, 1)
 struct mem_cell {
 	typedef uint8_t head_type;
+	/// <summary>
+	/// 最高位1位位0则表示used，为1则表示unused，剩余的低位由用户决定如何使用
+	/// </summary>
 	head_type head = 0;
 
 #if COMPACT_CELL
@@ -29,16 +32,13 @@ struct mem_cell {
 	};
 #endif // COMPACT_CELL
 
-//private:
-//	enum { _HalfBytesCountOfHeadType = (sizeof(head_type) * 8 / 2) };
-//	static const head_type _BlockIndexMask = (head_type)~0 >> _HalfBytesCountOfHeadType;
-//	static const head_type _PoolIndexMask = ~_BlockIndexMask;
+private:
+	static const head_type _UsedMark = 0;
+	static const head_type _UnuseMark = ~((head_type)~0 >> 1);
 
 public:
 	enum {
-		//PoolCount = _BlockIndexMask + 1,
-		//BlockCount = _BlockIndexMask + 1,
-		PoolCount = (head_type)~0 +1,
+		PoolCount = ((head_type)~0 >> 1) +1,
 #if COMPACT_CELL
 		UserMemOffset = sizeof(head_type) 
 #else
@@ -48,33 +48,29 @@ public:
 
 	void set_pool_index(size_t i)
 	{
-		// assert(PoolCount > i)
-		//head = (head & ~_PoolIndexMask) | ((head_type)i << _HalfBytesCountOfHeadType);
+		// todo: assert(PoolCount > i)
 		head = (head_type)i;
 	}
 	size_t get_pool_index()
 	{
-		//return head >> _HalfBytesCountOfHeadType;
 		return head;
 	}
 
-	//void set_block_index(size_t i)
-	//{
-	//	// assert(BlockCount > i)
-	//	head = (head & ~_BlockIndexMask) | ((head_type)i & _BlockIndexMask);
-	//}
-	//size_t get_block_index()
-	//{
-	//	return head & _BlockIndexMask;
-	//}
-
+	void mark_unused()
+	{
+		head = _UnuseMark;
+	}
+	bool is_unused() const
+	{
+		return _UnuseMark == head;
+	}
 	void mark_used()
 	{
-		p_next_cell = (mem_cell*)(intptr_t)1;
+		head = _UsedMark;
 	}
 	bool is_used() const 
 	{
-		return (intptr_t)1 == (intptr_t)p_next_cell;
+		return !is_unused();
 	}
 
 	static mem_cell& get_cell(void* user_mem)
