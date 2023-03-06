@@ -14,9 +14,8 @@
 
 #if REF_SAFE_CHECK
 
-const int BUG_TAG_MEM_RAW_POOL = 1;
-const int BUG_TAG_TEMP_REF = 2;
-const int BUG_TAG_WEAK_REF = 3;
+const int BUG_TAG_TEMP_REF = 1;
+const int BUG_TAG_WEAK_REF = 2;
 
 #endif // REF_SAFE_CHECK
 
