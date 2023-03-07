@@ -19,6 +19,89 @@
 
 CORE_NAMESPACE_BEG
 
+namespace _container_details
+{
+	template<typename _T, bool has_default_ctor>
+	struct _default_construct
+	{
+		static void do_construct(_T* p, int num)
+		{
+		}
+	};
+
+	template<typename _T>
+	struct _default_construct<_T, true>
+	{
+		static void do_construct(_T* p, int num)
+		{
+			for (int i = 0; i < num; i++)
+			{
+				new(static_cast<void*>(p + i)) _T();
+			}
+		}
+	};
+
+	template<typename _T, bool is_class>
+	struct _default_deconstruct
+	{
+		static void do_deconstruct(_T* p, int num)
+		{
+		}
+	};
+
+	template<typename _T>
+	struct _default_deconstruct<_T, true>
+	{
+		static void do_deconstruct(_T* p, int num)
+		{
+			for (int i = 0; i < num; i++)
+			{
+                p[i].~_T();
+			}
+		}
+	};
+
+	template <class _T>
+    _T* _allocate_array(int num)
+    {
+        _T* ptr = static_cast<_T*>(::operator new(num * sizeof(_T)));
+        _default_construct<_T, std::is_default_constructible<_T>::value && !std::is_pointer<_T>::value>::do_construct(ptr, num);
+		return ptr;
+	}
+
+	template <class _T>
+    _T* _allocate_array(int num, size_t header)
+    {
+		char* ptr = static_cast<char*>(::operator new(header + num * sizeof(_T)));
+        _default_construct<_T, std::is_default_constructible<_T>::value && !std::is_pointer<_T>::value>::do_construct(reinterpret_cast<_T*>(ptr + header), num);
+		return reinterpret_cast<_T*>(ptr);
+	}
+
+	template <class _T>
+	void _deallocate_array(void* mem, int num)
+	{
+        _default_deconstruct<_T, std::is_class<_T>::value>::do_deconstruct(reinterpret_cast<_T*>(mem), num);
+		::operator delete(mem);
+	}
+
+    template <class _T>
+	void _deallocate_array(void* mem, int num, size_t header)
+	{
+        _default_deconstruct<_T, std::is_class<_T>::value>::do_deconstruct(reinterpret_cast<_T*>((void*)((intptr_t)mem + header)), num);
+		::operator delete(mem);
+	}
+
+	void* _allocate_atomic(size_t n)
+	{
+		return ::operator new(n);
+	}
+
+	void _deallocate_atomic(void* mem)
+	{
+		::operator delete(mem);
+	}
+}
+
 template<typename _T>
 class allocator
 {
@@ -84,7 +167,7 @@ public:
 
     size_type max_size() const 
     {
-        return std::numeric_limits<size_type>::max() / sizeof(_T);
+        return static_cast<size_type>(-1) / sizeof(_T);
     }
 };
 template <class _T, class _P>
@@ -93,7 +176,7 @@ bool operator==(const allocator<_T>&, const allocator<_P>&) noexcept
     return true;
 }
 template <class _T, class _P>
-bool operator!=(const allocator<_T>&, const allocator<_P>&) noexcept 
+bool operator!=(const allocator<_T>&, const std::allocator<_P>&) noexcept 
 {
     return false;
 }

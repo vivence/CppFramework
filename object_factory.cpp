@@ -111,7 +111,7 @@ object_factory::~object_factory()
 	_recyle_temp_refs();
 }
 
-void object_factory::delete_obj(object* p_obj)
+void object_factory::_delete_obj(object* p_obj)
 {
 	_delay_destroy_objs.push_back(p_obj);
 }

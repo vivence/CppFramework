@@ -3,14 +3,17 @@
 #define OBJECT_FACTORY_H
 
 #include "core.h"
+#include "utils.h"
 #include "noncopyable.h"
 #include "mem_pool.h"
 #include "object.h"
 #include "object_weak_ref.h"
 #include "object_temp_ref.h"
+#include "sfinae_macros.h"
 #include <type_traits>
 #include <vector>
 #include <memory>
+#include <initializer_list>
 
 CORE_NAMESPACE_BEG
 
@@ -48,6 +51,14 @@ private: // private functions
 	void _handle_delay_destroy();
 	void* _alloc_temp_ref_mem();
 	void _recyle_temp_refs();
+	template<typename _T>
+	void _init_obj(_T* p, void* user_mem)
+	{
+		auto p_obj = static_cast<object*>(p);
+		p_obj->_instance_id = _next_object_id++;
+		p_obj->_user_mem = user_mem;
+	}
+	void _delete_obj(object* p_obj);
 
 private: // friend functions
 	template<typename _TID, typename _TObj>
@@ -59,8 +70,20 @@ private: // friend functions
 
 	template<typename _T, typename ..._Args>
 	_T* new_obj(_Args&&... args);
-	void delete_obj(object* p_obj);
+	template<typename _T, typename _E>
+	_T* new_obj(std::initializer_list<_E> list);
 	void delete_obj_immediately(object* p_obj);
+	template<typename _T>
+	bool delete_obj(_T* p)
+	{
+		auto p_obj = cast_utils<_T, object>::cast(p);
+		if (nullptr == p_obj)
+		{
+			return false;
+		}
+		_delete_obj(p_obj);
+		return true;
+	}
 
 	template<typename _T>
 	object_weak_ref<_T> get_weak_ref(_T* p_obj)
@@ -106,9 +129,28 @@ _T* object_factory::new_obj(_Args&&... args)
 		return nullptr;
 	}
 
-	auto p_obj = static_cast<object*>(p);
-	p_obj->_instance_id = _next_object_id++;
-	p_obj->_user_mem = user_mem;
+	_init_obj(p, user_mem);
+	return p;
+}
+
+template<typename _T, typename _E>
+_T* object_factory::new_obj(std::initializer_list<_E> list)
+{
+	static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
+
+	void* user_mem = _mem_pool.alloc<_T>();
+	if (nullptr == user_mem)
+	{
+		return nullptr;
+	}
+
+	auto p = new(user_mem) _T(list);
+	if (nullptr == p)
+	{
+		return nullptr;
+	}
+
+	_init_obj(p, user_mem);
 	return p;
 }
 

@@ -20,7 +20,8 @@ struct mem_pool_config {
 		// cell raw min size is sizeof(_cell)
 		constexpr static size_t cell_raw_size(size_t user_mem_size)
 		{
-			return std::max(user_mem_size + mem_cell::UserMemOffset, sizeof(mem_cell));
+			// (std::max): fxxk the macro "max"  
+			return (std::max)(user_mem_size + mem_cell::UserMemOffset, sizeof(mem_cell));
 		}
 
 		// all indexes are divided according to multiples of CellUnitSize
