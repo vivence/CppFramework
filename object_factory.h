@@ -59,6 +59,7 @@ private: // private functions
 		p_obj->_user_mem = user_mem;
 	}
 	void _delete_obj(object* p_obj);
+	void _delete_obj_immediately(object* p_obj);
 
 private: // friend functions
 	template<typename _TID, typename _TObj>
@@ -72,7 +73,6 @@ private: // friend functions
 	_T* new_obj(_Args&&... args);
 	template<typename _T, typename _E>
 	_T* new_obj(std::initializer_list<_E> list);
-	void delete_obj_immediately(object* p_obj);
 	template<typename _T>
 	bool delete_obj(_T* p)
 	{
@@ -82,6 +82,17 @@ private: // friend functions
 			return false;
 		}
 		_delete_obj(p_obj);
+		return true;
+	}
+	template<typename _T>
+	bool delete_obj_immediately(_T* p)
+	{
+		auto p_obj = cast_utils<_T, object>::cast(p);
+		if (nullptr == p_obj)
+		{
+			return false;
+		}
+		_delete_obj_immediately(p_obj);
 		return true;
 	}
 

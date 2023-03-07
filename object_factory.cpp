@@ -111,21 +111,6 @@ object_factory::~object_factory()
 	_recyle_temp_refs();
 }
 
-void object_factory::_delete_obj(object* p_obj)
-{
-	_delay_destroy_objs.push_back(p_obj);
-}
-
-void object_factory::delete_obj_immediately(object* p_obj)
-{
-#if REF_SAFE_CHECK
-	object_temp_ref_destroyed_pointers::add_destroyed_pointer(p_obj);
-#endif // REF_SAFE_CHECK
-	auto user_mem = p_obj->_user_mem;
-	p_obj->~object();
-	_mem_pool.free(user_mem);
-}
-
 void object_factory::on_frame_end()
 {
 	_handle_delay_destroy();
@@ -145,7 +130,7 @@ void object_factory::_handle_delay_destroy()
 		_delay_destroy_objs.swap(temp);
 		for (size_t i = 0; i < obj_count; ++i)
 		{
-			delete_obj_immediately(temp[i]);
+			_delete_obj_immediately(temp[i]);
 		}
 		temp.clear();
 	}
@@ -159,6 +144,21 @@ void* object_factory::_alloc_temp_ref_mem()
 void object_factory::_recyle_temp_refs()
 {
 	_p_temp_ref_pool->reset();
+}
+
+void object_factory::_delete_obj(object* p_obj)
+{
+	_delay_destroy_objs.push_back(p_obj);
+}
+
+void object_factory::_delete_obj_immediately(object* p_obj)
+{
+#if REF_SAFE_CHECK
+	object_temp_ref_destroyed_pointers::add_destroyed_pointer(p_obj);
+#endif // REF_SAFE_CHECK
+	auto user_mem = p_obj->_user_mem;
+	p_obj->~object();
+	_mem_pool.free(user_mem);
 }
 
 CORE_NAMESPACE_END

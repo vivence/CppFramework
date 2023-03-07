@@ -181,9 +181,9 @@ public: // comparators as right hand
 	template<typename _TT>
 	friend bool operator !=(nullptr_t, const object_shared_ptr<_TT>& wp);
 
-	template<typename _DD, typename _TT, ENABLE_IF_CONVERTIBLE(_DD*, _TT*)>
+	template<typename _DD, typename _TT, ENABLE_IF_CONVERTIBLE_DEF(_DD*, _TT*)>
 	friend bool operator ==(const _DD* p, const object_shared_ptr<_TT>& wp);
-	template<typename _DD, typename _TT, ENABLE_IF_CONVERTIBLE(_DD*, _TT*)>
+	template<typename _DD, typename _TT, ENABLE_IF_CONVERTIBLE_DEF(_DD*, _TT*)>
 	friend bool operator !=(const _DD* p, const object_shared_ptr<_TT>& wp);
 };
 

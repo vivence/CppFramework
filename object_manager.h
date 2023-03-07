@@ -131,13 +131,13 @@ object_weak_ref<_T> object_manager<_TID, _TObj>::create(id_type id, _Args&&... a
 template<typename _TID, typename _TObj>
 void object_manager<_TID, _TObj>::destroy(id_type id)
 {
-    _destroy(id, &object_factory::delete_obj);
+    _destroy(id, &object_factory::_delete_obj);
 }
 
 template<typename _TID, typename _TObj>
 void object_manager<_TID, _TObj>::destroy_immediately(id_type id)
 {
-    _destroy(id, &object_factory::delete_obj_immediately);
+    _destroy(id, &object_factory::_delete_obj_immediately);
 }
 
 template<typename _TID, typename _TObj>
