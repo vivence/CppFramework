@@ -63,11 +63,21 @@ struct object_shared_ptr_tag_t {
 };
 
 struct object_ptr_utils;
+//----------- 适配ML项目 --------------->
+namespace _container_details {
+	template<typename _T, bool has_default_ctor>
+	struct _default_construct;
+}
+//--------------------------------------<
 
 template<typename _T>
 class object_shared_ptr : dis_new {
-	//static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
-	//static_assert(std::is_base_of<ref_info, _T>::value, "_T must be inherit from ref_info");
+	void* operator new(size_t, void* mem) noexcept { return mem; }
+	inline void operator delete(void*, void* mem) {}
+	//----------- 适配ML项目 --------------->
+	template<typename _T, bool has_default_ctor>
+	friend struct _container_details::_default_construct;
+	//--------------------------------------<
 	_T* _p;
 
 public: // typedef
