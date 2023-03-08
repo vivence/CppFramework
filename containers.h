@@ -19,6 +19,7 @@
 
 CORE_NAMESPACE_BEG
 
+//----------- ÊÊÅäMLÏîÄ¿ --------------->
 namespace _container_details
 {
 	template<typename _T, bool has_default_ctor>
@@ -101,6 +102,7 @@ namespace _container_details
 		::operator delete(mem);
 	}
 }
+//-------------------------------------<
 
 template<typename _T>
 class allocator
