@@ -15,9 +15,9 @@ struct string_format_utils {
 	static std::string format_count(size_t size);
 };
 
-template<typename _T, typename _P>
-class cast_utils {
-	template<bool _IsConvertible>
+class _cast_utils {
+protected:
+	template<typename _T, typename _P, bool _IsConvertible>
 	struct _caster {
 		static _P* cast(_T* p)
 		{
@@ -36,8 +36,8 @@ class cast_utils {
 			return dynamic_cast<const _P&>(v);
 		}
 	};
-	template<>
-	struct _caster<true> {
+	template<typename _T, typename _P>
+	struct _caster<_T, _P, true> {
 		static _P* cast(_T* p)
 		{
 			return static_cast<_P*>(p);
@@ -55,14 +55,20 @@ class cast_utils {
 			return static_cast<const _P&>(v);
 		}
 	};
+};
+
+template<typename _T, typename _P>
+class cast_utils : _cast_utils {
+	
 public:
+	static constexpr bool IsConvertible = std::is_convertible<_T*, _P*>::value;
 	static _P* cast(_T* p)
 	{
-		return _caster<std::is_convertible<_T, _P>::value>::cast(p);
+		return _caster<_T, _P, IsConvertible>::cast(p);
 	}
 	static _P& cast(_T& v)
 	{
-		return _caster<std::is_convertible<_T, _P>::value>::cast(v);
+		return _caster<_T, _P, IsConvertible>::cast(v);
 	}
 };
 
