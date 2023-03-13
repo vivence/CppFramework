@@ -11,8 +11,13 @@ class bug_reporter;
 class object_factory;
 
 class enviroment : noncopyable {
+    static bool _init_default_enviroment();
 public:
-    static enviroment& get_current_env() { return *_s_current_env; }
+    static enviroment& get_current_env()
+    { 
+        static bool inited = _init_default_enviroment();
+        return *_s_current_env; 
+    }
 
 protected:
     static enviroment* _s_current_env;
