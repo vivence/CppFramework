@@ -90,6 +90,17 @@ private: // private constructors
 	friend struct object_ptr_utils;
 	explicit object_shared_ptr(_T* p) : _p(p) { ref_info::add_ref(_p); }
 	explicit object_shared_ptr(const _T* p) : _p(const_cast<_T*>(p)) { ref_info::add_ref(_p); }
+	//----------- ÊÊÅäMLÏîÄ¿ --------------->
+	object_shared_ptr(_T* p, int extra_ref_count) : _p(p) 
+	{ 
+		ref_info::add_ref(_p); 
+		for (int i = 0; i < extra_ref_count; ++i)
+		{
+			ref_info::add_ref(_p);
+		}
+	}
+	object_shared_ptr(const _T* p, int extra_ref_count) : object_shared_ptr(const_cast<_T*>(p), extra_ref_count) {}
+	//--------------------------------------<
 
 public: // default constructors
 	object_shared_ptr() : _p(nullptr) {}
@@ -112,25 +123,20 @@ public: // explicit constructors
 public:
 	~object_shared_ptr() 
 	{ 
-		if (nullptr != _p && 0 >= ref_info::remove_ref(_p))
+		/*if (nullptr != _p && 0 >= ref_info::remove_ref(_p))
 		{
 			enviroment::get_current_env().get_object_factory().delete_obj(_p);
-		}
+		}*/
 	}
 
 public: // implicit constructors 
-	//template<typename _D, ENABLE_IF_CONVERTIBLE(_D*, _T*)>
-	//object_shared_ptr(_D* p) : _p(static_cast<_T*>(p)) { ref_info::add_ref(_p); }
-	//template<typename _D, ENABLE_IF_CONVERTIBLE(_D*, _T*)>
-	//object_shared_ptr(const _D* p) : _p(static_cast<_T*>(const_cast<_D*>(p))) { ref_info::add_ref(_p); }
-
 	template<typename _D, ENABLE_IF_CONVERTIBLE(_D*, _T*)>
 	object_shared_ptr(object_shared_ptr<_D>& p) : _p(static_cast<_T*>(p.operator->())) { ref_info::add_ref(_p); }
 	template<typename _D, ENABLE_IF_CONVERTIBLE(_D*, _T*)>
 	object_shared_ptr(const object_shared_ptr<_D>& p) : _p(static_cast<_T*>(const_cast<_D*>(p.operator->()))) { ref_info::add_ref(_p); }
 
 public: // implicit conversions
-	operator bool() const { return nullptr != _p; }
+	//operator bool() const { return nullptr != _p; } // Ambiguity of function overloading
 
 private: // private assign
 	object_shared_ptr& operator =(_T* p)
@@ -178,6 +184,11 @@ public: // work as raw pointer
 public: // comparators as left hand
 	inline bool operator ==(const object_shared_ptr& rhs) const { return _p == rhs._p; }
 	inline bool operator !=(const object_shared_ptr& rhs) const { return _p != rhs._p; }
+
+	template<typename _U>
+	inline bool operator ==(const object_shared_ptr<_U>& rhs) const { return _p == rhs.operator->(); }
+	template<typename _U>
+	inline bool operator !=(const object_shared_ptr<_U>& rhs) const { return _p != rhs.operator->(); }
 
 	inline bool operator ==(nullptr_t) const { return _p == nullptr; }
 	inline bool operator !=(nullptr_t) const { return _p != nullptr; }

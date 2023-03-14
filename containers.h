@@ -16,9 +16,10 @@
 #include <map>
 #include <unordered_set>
 #include <unordered_map>
+#include <string.h>
+
 
 CORE_NAMESPACE_BEG
-
 //----------- ÊÊÅäMLÏîÄ¿ --------------->
 namespace _container_details
 {
@@ -27,6 +28,7 @@ namespace _container_details
 	{
 		static void do_construct(_T* p, int num)
 		{
+			memset(p, 0, sizeof(_T) * num);
 		}
 	};
 
@@ -37,7 +39,7 @@ namespace _container_details
 		{
 			for (int i = 0; i < num; i++)
 			{
-				new(static_cast<void*>(p + i)) _T();
+				new(reinterpret_cast<void*>(p + i)) _T();
 			}
 		}
 	};
@@ -74,6 +76,7 @@ namespace _container_details
     _T* _allocate_array(int num, size_t header)
     {
 		char* ptr = static_cast<char*>(::operator new(header + num * sizeof(_T)));
+        memset(ptr, 0, header);
         _default_construct<_T, std::is_default_constructible<_T>::value && !std::is_pointer<_T>::value>::do_construct(reinterpret_cast<_T*>(ptr + header), num);
 		return reinterpret_cast<_T*>(ptr);
 	}
@@ -82,25 +85,23 @@ namespace _container_details
 	void _deallocate_array(void* mem, int num)
 	{
         _default_deconstruct<_T, std::is_class<_T>::value>::do_deconstruct(reinterpret_cast<_T*>(mem), num);
-		::operator delete(mem);
+		::operator delete(mem, num * sizeof(_T));
 	}
 
     template <class _T>
 	void _deallocate_array(void* mem, int num, size_t header)
 	{
         _default_deconstruct<_T, std::is_class<_T>::value>::do_deconstruct(reinterpret_cast<_T*>((void*)((intptr_t)mem + header)), num);
-		::operator delete(mem);
+		::operator delete(mem, header + num * sizeof(_T));
 	}
 
-	void* _allocate_atomic(size_t n)
-	{
-		return ::operator new(n);
-	}
-
-	void _deallocate_atomic(void* mem)
-	{
-		::operator delete(mem);
-	}
+    inline void* _allocate_atomic(size_t n) 
+    { 
+        auto mem = ::operator new(n);
+        memset(mem, 0, n);
+        return mem;
+    }
+    inline void _deallocate_atomic(void* mem) { ::operator delete(mem); }
 }
 //-------------------------------------<
 
@@ -141,8 +142,7 @@ public:
 
     void deallocate(pointer p, size_type count)
     {
-        count;
-        ::operator delete(p);
+        ::operator delete(p, count);
     }
 
     template<typename _U, typename ...Args>

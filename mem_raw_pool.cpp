@@ -2,6 +2,11 @@
 #include "mem_cell.h"
 #include "environment.h"
 #include "bug_reporter.h"
+#include <string.h>
+
+// 部分类并没有对所有字段进行构造初始化，依赖了内存分配器自动置零
+// 这个机制会导致分配消耗更大，字段初始化值应该由类自身去保证，以减少内存分配器的开销
+#define CLEAN_MEM 1
 
 CORE_NAMESPACE_BEG
 
@@ -77,6 +82,9 @@ mem_cell& mem_raw_pool::_pop_cell()
 	auto p_cell = _free_head;
 	_free_head = _free_head->p_next_cell;
 	p_cell->mark_used();
+#if CLEAN_MEM
+	memset(p_cell->user_mem, 0, _cell_size - mem_cell::UserMemOffset);
+#endif
 	return *p_cell;
 }
 
