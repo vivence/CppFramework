@@ -62,6 +62,7 @@ private: // private functions
 	void _delete_obj_immediately(object* p_obj);
 
 private: // friend functions
+	friend struct object_ref_utils;
 	template<typename _TID, typename _TObj>
 	friend class object_manager;
 	template<typename _TObj>

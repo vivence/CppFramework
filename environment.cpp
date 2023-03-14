@@ -4,7 +4,7 @@
 
 CORE_NAMESPACE_BEG
 
-class default_enviroment : public enviroment {
+class default_enviroment : public environment {
 	bug_reporter _bug_reporter;
 	object_factory _obj_factory;
 
@@ -20,9 +20,9 @@ public:
 	}
 };
 
-enviroment* enviroment::_s_current_env = nullptr;
+environment* environment::_s_current_env = nullptr;
 
-bool enviroment::_init_default_enviroment()
+bool environment::_init_default_enviroment()
 {
 	if (nullptr != _s_current_env)
 	{

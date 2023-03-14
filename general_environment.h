@@ -8,15 +8,15 @@
 
 CORE_NAMESPACE_BEG
 
-class general_environment : public enviroment {
+class general_environment : public environment {
 	using _bug_reporter_pointer_type = std::unique_ptr<bug_reporter>;
 	_bug_reporter_pointer_type _p_real_bug_reporter;
 	bug_reporter& _bug_reporter;
 	object_factory& _obj_factory;
 
 public:
-	explicit general_environment(enviroment& prev_env = enviroment::get_current_env())
-		: enviroment()
+	explicit general_environment(environment& prev_env = environment::get_current_env())
+		: environment()
 		, _p_real_bug_reporter(nullptr)
 		, _bug_reporter(prev_env.get_bug_reporter())
 		, _obj_factory(prev_env.get_object_factory())
@@ -24,8 +24,8 @@ public:
 
 	}
 	template<typename _BR = bug_reporter>
-	explicit general_environment(enviroment& prev_env = enviroment::get_current_env())
-		: enviroment()
+	explicit general_environment(environment& prev_env = environment::get_current_env())
+		: environment()
 		, _p_real_bug_reporter(new _BR())
 		, _bug_reporter(*_p_real_bug_reporter)
 		, _obj_factory(prev_env.get_object_factory())

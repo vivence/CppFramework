@@ -36,11 +36,12 @@ class object_temp_ref_destroyed_pointers {
 	{
 		if (_s_destroyed_pointers.end() != _s_destroyed_pointers.find(p))
 		{
-			enviroment::get_current_env().get_bug_reporter().report(BUG_TAG_TEMP_REF, "temp_ref access destroyed pointer!");
+			environment::get_current_env().get_bug_reporter().report(BUG_TAG_TEMP_REF, "temp_ref access destroyed pointer!");
 		}
 	}
 };
 #endif // REF_SAFE_CHECK
+
 
 template<typename _T>
 class object_temp_ref : public ref<_T>, noncopyable {
@@ -49,6 +50,7 @@ class object_temp_ref : public ref<_T>, noncopyable {
 	void* operator new(size_t, void* mem) noexcept { return mem; }
 	inline void operator delete(void*, void* mem) {}
 	friend class object_factory;
+	friend struct object_ref_utils;
 
 public:
 	static object_temp_ref null_ref;

@@ -33,7 +33,7 @@ bool mem_raw_pool::free(void* user_mem)
 	auto& c = mem_cell::get_cell(user_mem);
 	if (!c.is_used())
 	{
-		enviroment::get_current_env().get_bug_reporter().report(
+		environment::get_current_env().get_bug_reporter().report(
 			BUG_TAG_MEM_RAW_POOL,
 			"mem_raw_pool free failed: user_mem is not return from alloc()!");
 		return false;

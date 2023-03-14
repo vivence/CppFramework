@@ -48,7 +48,7 @@ private:
     {
         if (nullptr == *this)
         {
-            enviroment::get_current_env().get_bug_reporter().report(BUG_TAG_WEAK_REF, "weak_ref is nullptr!");
+            environment::get_current_env().get_bug_reporter().report(BUG_TAG_WEAK_REF, "weak_ref is nullptr!");
         }
         return _p;
     }

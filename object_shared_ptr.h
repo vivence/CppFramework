@@ -109,13 +109,13 @@ public: // default constructors
 public: // explicit constructors
 	template<typename ..._Args>
 	explicit object_shared_ptr(object_shared_ptr_tag_t, _Args&&... args)
-		: _p(enviroment::get_current_env().get_object_factory().new_obj<_T>(std::forward<_Args>(args)...))
+		: _p(environment::get_current_env().get_object_factory().new_obj<_T>(std::forward<_Args>(args)...))
 	{ 
 		ref_info::add_ref(_p); 
 	}
 	template<typename _E>
 	explicit object_shared_ptr(object_shared_ptr_tag_t, std::initializer_list<_E> list)
-		: _p(enviroment::get_current_env().get_object_factory().new_obj<_T>(list))
+		: _p(environment::get_current_env().get_object_factory().new_obj<_T>(list))
 	{
 		ref_info::add_ref(_p);
 	}
@@ -123,10 +123,10 @@ public: // explicit constructors
 public:
 	~object_shared_ptr() 
 	{ 
-		/*if (nullptr != _p && 0 >= ref_info::remove_ref(_p))
+		if (nullptr != _p && 0 >= ref_info::remove_ref(_p))
 		{
-			enviroment::get_current_env().get_object_factory().delete_obj(_p);
-		}*/
+			environment::get_current_env().get_object_factory().delete_obj(_p);
+		}
 	}
 
 public: // implicit constructors 
