@@ -7,7 +7,7 @@
 #include "dis_new.h"
 #include "object.h"
 #include "sfinae_macros.h"
-#include "enviroment.h"
+#include "environment.h"
 #include "object_factory.h"
 #include <utility>
 #include <initializer_list>

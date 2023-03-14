@@ -1,6 +1,6 @@
 #include "mem_raw_pool.h"
 #include "mem_cell.h"
-#include "enviroment.h"
+#include "environment.h"
 #include "bug_reporter.h"
 
 CORE_NAMESPACE_BEG

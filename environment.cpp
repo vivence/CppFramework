@@ -1,4 +1,4 @@
-#include "enviroment.h"
+#include "environment.h"
 #include "bug_reporter.h"
 #include "object_factory.h"
 
@@ -20,10 +20,14 @@ public:
 	}
 };
 
-enviroment* enviroment::_s_current_env = &default_enviroment::get_singleton();
+enviroment* enviroment::_s_current_env = nullptr;
 
 bool enviroment::_init_default_enviroment()
 {
+	if (nullptr != _s_current_env)
+	{
+		return false;
+	}
 	_s_current_env = &default_enviroment::get_singleton();
 	return true;
 }

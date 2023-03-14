@@ -6,7 +6,7 @@
 #include "dis_new.h"
 #include "ref.h"
 #include "object.h"
-#include "enviroment.h"
+#include "environment.h"
 #include <type_traits>
 
 CORE_NAMESPACE_BEG

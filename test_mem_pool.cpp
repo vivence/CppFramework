@@ -96,6 +96,49 @@ bool test_mem_pool::test_alloc()
 	return true;
 }
 
+bool test_mem_pool::test_realloc()
+{
+	mem_pool pool;
+	_AutoFree auto_free(pool);
+	auto& raw_pools = pool._pools;
+
+	// check pool count
+	auto raw_pool_count = sizeof(raw_pools) / sizeof(raw_pools[0]);
+	if (mem_cell::PoolCount != raw_pool_count)
+	{
+		_out << "test_realloc failed: raw count is invalid, " << raw_pool_count << " != " << mem_cell::PoolCount << std::endl;
+		return false;
+	}
+	_out << "test_realloc check pool count: OK" << std::endl;
+
+	// check realloc
+	auto mem = pool.alloc(1);
+	auto_free.Add(mem);
+	auto min_size = mem_pool::info_for_global::min_cell_user_mem_size;
+	for (size_t i = 2; i <= min_size; ++i)
+	{
+		auto new_mem = pool.realloc(mem, i);
+		if (new_mem != mem)
+		{
+			_out << "test_realloc failed: new_mem != mem, user_mem_size = " << i << std::endl;
+			auto_free.Add(new_mem);
+			return false;
+		}
+	}
+	auto new_size = min_size + 1;
+	auto new_mem = pool.realloc(mem, new_size);
+	if (new_mem == mem)
+	{
+		_out << "test_realloc failed: new_mem == mem, user_mem_size = " << new_size << std::endl;
+		return false;
+	}
+	auto_free.Add(new_mem);
+
+	_out << "test_realloc: OK" << std::endl;
+
+	return true;
+}
+
 bool test_mem_pool::test_free()
 {
 	mem_pool pool;

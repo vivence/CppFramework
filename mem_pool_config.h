@@ -34,7 +34,6 @@ struct mem_pool_config {
 		// cell size is the min multiples of CellUnitSize
 		constexpr static size_t cell_size(size_t user_mem_size)
 		{
-			auto raw_size = cell_raw_size(user_mem_size);
 			return _CellUnitSize * (pool_index(user_mem_size) + 1);
 		}
 

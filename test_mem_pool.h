@@ -17,6 +17,7 @@ public:
 
 public:
 	bool test_alloc();
+	bool test_realloc();
 	bool test_free();
 	bool test_cleanup_step();
 

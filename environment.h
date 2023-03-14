@@ -1,6 +1,6 @@
 
-#ifndef ENVIROMENT_H
-#define ENVIROMENT_H
+#ifndef ENVIRNOMENT_H
+#define ENVIRNOMENT_H
 
 #include "core.h"
 #include "noncopyable.h"
@@ -12,6 +12,7 @@ class object_factory;
 
 class enviroment : noncopyable {
     static bool _init_default_enviroment();
+
 public:
     static enviroment& get_current_env()
     { 

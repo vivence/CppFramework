@@ -70,6 +70,7 @@ public:
 		return user_mem;
 	}
 	void* alloc(size_t user_mem_size);
+	void* realloc(void* user_mem, size_t user_mem_size);
 	bool free(void* user_mem);
 
 	void cleanup_step();
@@ -82,16 +83,19 @@ public:
 		static const size_t cell_raw_size_min = sizeof(mem_cell);
 		static const size_t cell_head_size = sizeof(mem_cell::head_type);
 		static const size_t user_mem_offset_in_cell = mem_cell::UserMemOffset;
-		static const size_t min_cell_size = _config::calc::cell_size_by_pool_index(0);
-		static const size_t min_cell_count = _config::calc::cell_count_by_pool_index(0);
+		static const size_t min_cell_size = _config::calc::cell_size(0);
+		static const size_t min_cell_user_mem_size = min_cell_size - mem_cell::UserMemOffset;
+		static const size_t min_cell_pool_index = _config::calc::pool_index(min_cell_user_mem_size);
+		static const size_t min_cell_count = _config::calc::cell_count_by_pool_index(min_cell_pool_index);
 		static const size_t max_cell_size = _config::calc::cell_size_by_pool_index(mem_cell::PoolCount - 1);
+		static const size_t max_cell_user_mem_size = _config::calc::cell_size_by_pool_index(mem_cell::PoolCount - 1) - mem_cell::UserMemOffset;
 		static const size_t max_cell_count = _config::calc::cell_count_by_pool_index(mem_cell::PoolCount - 1);
 		static const size_t max_type_size = max_cell_size - user_mem_offset_in_cell;
 	};
 	template<typename _T>
 	struct info_for_type {
 		using type_meta = typename _config::template type_meta<_T>;
-		static const size_t cell_raw_size = sizeof(_T);
+		static const size_t type_size = sizeof(_T);
 		static const size_t cell_size = type_meta::cell_size;
 		static const size_t cell_count_in_block = type_meta::cell_count;
 		static const size_t pool_index = type_meta::pool_index;
@@ -112,6 +116,19 @@ void* mem_pool_configable<_CellUnitSize, _BlockMaxSize>::alloc(size_t user_mem_s
 		return user_mem;
 	}
 	return nullptr;
+}
+
+template<size_t _CellUnitSize, size_t _BlockMaxSize>
+void* mem_pool_configable<_CellUnitSize, _BlockMaxSize>::realloc(void* user_mem, size_t user_mem_size)
+{
+	auto old_pool_index = mem_cell::get_cell(user_mem).get_pool_index();
+	auto new_pool_index = _config::calc::pool_index(user_mem_size);
+	if (old_pool_index == new_pool_index)
+	{
+		return user_mem;
+	}
+	free(user_mem);
+	return alloc(user_mem_size);
 }
 
 template<size_t _CellUnitSize, size_t _BlockMaxSize>

@@ -7,7 +7,7 @@
 #include <type_traits>
 
 #if REF_SAFE_CHECK
-#include "enviroment.h"
+#include "environment.h"
 #include "bug_reporter.h"
 #include <set>
 #endif // REF_SAFE_CHECK
