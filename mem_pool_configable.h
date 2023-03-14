@@ -11,6 +11,13 @@
 
 CORE_NAMESPACE_BEG
 
+inline constexpr static size_t mem_pool_config_cell_unit_size()
+{
+	constexpr size_t mem_cell_size = sizeof(mem_cell);
+	constexpr size_t unit_size = sizeof(size_t);
+	return unit_size * (mem_cell_size / unit_size + (0 < mem_cell_size % unit_size ? 1 : 0));
+}
+
 class test_mem_pool;
 
 template<size_t _CellUnitSize, size_t _BlockMaxSize>
