@@ -4,6 +4,7 @@
 
 #include "core.h"
 #include "object_shared_ptr.h"
+#include "object_monitor_ptr.h"
 #include "sfinae_macros.h"
 #include <type_traits>
 
@@ -68,6 +69,21 @@ public:
 	}
 };
 
-CORE_NAMESPACE_END
+
+#define EnableMPtr 1
+
+#if EnableMPtr
+template<typename _T>
+using MPtr = object_monitor_ptr<_T>;
+
+#else
+template<typename T>
+using MPtr = T*;
+#endif
+
+#define NewDeclareClass(T) class T; \
+						   using T##_P = CORE MPtr<T> 
 
 #endif
+
+CORE_NAMESPACE_END

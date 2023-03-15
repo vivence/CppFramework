@@ -37,6 +37,7 @@ protected:
 
 template<typename _T>
 class object_monitor_ptr : dis_new {
+public:
 	void* operator new(size_t, void* mem) noexcept { return mem; }
 	inline void operator delete(void*, void* mem) {}
 	//----------- ÊÊÅäMLÏîÄ¿ --------------->
@@ -48,14 +49,14 @@ public:
 		//---info--->
 		object_monitored* p_obj;
 		int ref_count;
-		bool destoryed;
+		bool destroyed;
 		//----------<
 		char obj_mem[sizeof(_T)];
 
 		template<typename ..._Args>
 		explicit _obj_monitored(_Args&&... args)
 			: ref_count(0)
-			, destoryed(false)
+			, destroyed(false)
 		{
 			auto p = new (&obj_mem[0]) _T(std::forward<_Args>(args)...);
 			p_obj = static_cast<object_monitored*>(p);
@@ -70,7 +71,7 @@ public:
 			return reinterpret_cast<_T*>(&obj_mem[0]);
 		}
 
-		static _obj_monitored* get(_T* p)
+		static _obj_monitored* get(const _T* p)
 		{
 			static const intptr_t OBJECT_OFFSET = (intptr_t) &((_obj_monitored*)0)->obj_mem;
 			return reinterpret_cast<_obj_monitored*>(((intptr_t)p - OBJECT_OFFSET));
@@ -114,7 +115,16 @@ public: // create and destory
 	{
 		if (nullptr != ptr._p)
 		{
-			_obj_monitored::get(ptr._p)->destoryed = true;
+			_obj_monitored::get(ptr._p)->destroyed = true;
+		}
+	}
+
+private:
+	void _check_valid() const
+	{
+		if (nullptr != _p && _obj_monitored::get(_p)->destroyed)
+		{
+			environment::get_current_env().get_bug_reporter().report(BUG_TAG_MONITOR_PTR, "monitor_ptr access destroyed object");
 		}
 	}
 
@@ -123,8 +133,8 @@ private: // not allowed
 
 private: // private constructors
 	friend struct object_ptr_utils;
-	explicit object_monitor_ptr(_T* p) noexcept : _p(p) { _obj_monitored::add_ref(_p); }
-	explicit object_monitor_ptr(const _T* p) noexcept : _p(const_cast<_T*>(p)) { _obj_monitored::add_ref(_p); }
+	explicit object_monitor_ptr(_T* p) noexcept : _p(p) { _check_valid(); _obj_monitored::add_ref(_p); }
+	explicit object_monitor_ptr(const _T* p) noexcept : object_monitor_ptr(const_cast<_T*>(p)) {}
 
 public: // default constructors
 	object_monitor_ptr() : _p(nullptr) {}
@@ -135,7 +145,15 @@ public:
 	{
 		if (nullptr != _p && 0 >= _obj_monitored::remove_ref(_p))
 		{
-			environment::get_current_env().get_object_factory().delete_obj(_obj_monitored::get(_p));
+			auto p_obj_monitored = _obj_monitored::get(_p);
+			if (p_obj_monitored->destroyed)
+			{
+				environment::get_current_env().get_object_factory().delete_obj(p_obj_monitored);
+			}
+			else
+			{
+				// todo: report leak
+			}
 		}
 	}
 
@@ -148,6 +166,7 @@ public: // implicit constructors
 	object_monitor_ptr(object_monitor_ptr<_D>&& p) noexcept 
 		: _p(static_cast<_T*>(p.operator->())) 
 	{
+		_check_valid();
 		p._p = nullptr;
 	}
 
@@ -169,7 +188,7 @@ private: // private assign
 	object_monitor_ptr& operator =(const _D* p) noexcept { *this = const_cast<_D*>(p); return *this; }
 
 public: // copy and assign
-	object_monitor_ptr(const object_monitor_ptr& other) noexcept : _p(other._p) { _obj_monitored::add_ref(_p); }
+	object_monitor_ptr(const object_monitor_ptr& other) noexcept : object_monitor_ptr(other._p) {}
 	object_monitor_ptr& operator =(const object_monitor_ptr& other) noexcept
 	{
 		if (other == *this) { return *this; }
@@ -183,14 +202,13 @@ public: // copy and assign
 		return *this;
 	}
 
-
 	template<typename _D, ENABLE_IF_CONVERTIBLE(_D*, _T*)>
 	object_monitor_ptr& operator =(object_monitor_ptr<_D>& p) noexcept { *this = p.operator->(); return *this; }
 	template<typename _D, ENABLE_IF_CONVERTIBLE(_D*, _T*)>
 	object_monitor_ptr& operator =(const object_monitor_ptr<_D>& p) noexcept { *this = p.operator->(); return *this; }
 
 public: // move and assign
-	object_monitor_ptr(object_monitor_ptr&& other) noexcept : _p(other._p) { other._p = nullptr; }
+	object_monitor_ptr(object_monitor_ptr&& other) noexcept : _p(other._p) { _check_valid(); other._p = nullptr; }
 	object_monitor_ptr& operator =(object_monitor_ptr&& other) noexcept
 	{
 		if (other == *this) { return *this; }
@@ -210,11 +228,11 @@ public: // swap
 	void swap(object_monitor_ptr& other) noexcept { std::swap(_p, other._p); }
 
 public: // work as raw pointer
-	_T* operator->() { return _p; }
-	const _T* operator->() const { return _p; }
+	_T* operator->() { _check_valid(); return _p; }
+	const _T* operator->() const { _check_valid(); return _p; }
 
-	_T& operator*() { return *_p; }
-	const _T& operator*() const { return *_p; }
+	_T& operator*() { _check_valid(); return *_p; }
+	const _T& operator*() const { _check_valid(); return *_p; }
 
 public: // comparators as left hand
 	inline bool operator ==(const object_monitor_ptr& rhs) const { return _p == rhs._p; }

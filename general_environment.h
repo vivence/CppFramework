@@ -33,6 +33,16 @@ public:
 	}
 	virtual ~general_environment() = default;
 
+protected:
+	explicit general_environment(bug_reporter* p_bug_reporter, environment& prev_env = environment::get_current_env())
+		: environment()
+		, _p_real_bug_reporter(p_bug_reporter)
+		, _bug_reporter(*_p_real_bug_reporter)
+		, _obj_factory(prev_env.get_object_factory())
+	{
+
+	}
+
 public:
 	virtual bug_reporter& get_bug_reporter() override { return _bug_reporter; }
 	virtual object_factory& get_object_factory() override { return _obj_factory; }
