@@ -1,6 +1,6 @@
 
-#ifndef OBJECT_SHARED_REF_H
-#define OBJECT_SHARED_REF_H
+#ifndef OBJECT_SHARED_PTR_H
+#define OBJECT_SHARED_PTR_H
 
 #include "core.h"
 #include "utils.h"

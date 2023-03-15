@@ -27,6 +27,8 @@ class object_manager_singleton;
 
 template<typename _T>
 class object_shared_ptr;
+template<typename _T>
+class object_monitor_ptr;
 
 class object_factory final : noncopyable {
 	using _object_array_type = std::vector<object*>;
@@ -69,6 +71,8 @@ private: // friend functions
 	friend class object_manager_singleton;
 	template<typename _T>
 	friend class object_shared_ptr;
+	template<typename _T>
+	friend class object_monitor_ptr;
 
 	template<typename _T, typename ..._Args>
 	_T* new_obj(_Args&&... args);
