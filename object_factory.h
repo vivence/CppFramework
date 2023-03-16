@@ -69,6 +69,7 @@ private: // friend functions
 	friend class object_manager;
 	template<typename _TObj>
 	friend class object_manager_singleton;
+	friend struct object_ptr_util;
 	template<typename _T>
 	friend class object_shared_ptr;
 	template<typename _T>

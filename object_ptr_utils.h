@@ -6,6 +6,8 @@
 #include "object_shared_ptr.h"
 #include "object_monitor_ptr.h"
 #include "sfinae_macros.h"
+#include "environment.h"
+#include "object_factory.h"
 #include <type_traits>
 
 CORE_NAMESPACE_BEG
@@ -40,6 +42,17 @@ struct object_ptr_utils {
 	{
 		return &p._p;
 	}
+
+	template<typename _T, typename ..._Args>
+	inline static _T* factory_new(_Args&&... args)
+	{
+		return environment::get_current_env().get_object_factory().new_obj<_T>(std::forward<_Args>(args)...);
+	}
+	template<typename _T>
+	inline static bool factory_delete(_T* p)
+	{
+		return environment::get_current_env().get_object_factory().delete_obj(p);
+	}
 	//--------------------------------------<
 
 private:
@@ -71,14 +84,16 @@ public:
 
 
 #define EnableMPtr 1
+#define EnableObjFactory EnableMPtr + 1
 
 #if EnableMPtr
 template<typename _T>
 using MPtr = object_monitor_ptr<_T>;
-
+#define GetRawPtr(p) p.operator->()
 #else
 template<typename T>
 using MPtr = T*;
+#define GetRawPtr(p) (p)
 #endif
 
 #define NewDeclareClass(T) class T; \

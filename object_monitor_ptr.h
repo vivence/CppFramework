@@ -111,12 +111,21 @@ public: // create and destory
 		return std::move(ptr);
 	}
 
-	static void destory(object_monitor_ptr ptr)
+	static bool destory(object_monitor_ptr ptr)
 	{
 		if (nullptr != ptr._p)
 		{
-			_obj_monitored::get(ptr._p)->destroyed = true;
+			if (typeid(*(ptr._p)) == typeid(_T))
+			{
+				_obj_monitored::get(ptr._p)->destroyed = true;
+			}
+			else
+			{
+				environment::get_current_env().get_bug_reporter().report(BUG_TAG_MONITOR_PTR, "monitor_ptr destory not _T pointer");
+				return false;
+			}
 		}
+		return true;
 	}
 
 private:
@@ -152,7 +161,7 @@ public:
 			}
 			else
 			{
-				// todo: report leak
+				environment::get_current_env().get_bug_reporter().report(BUG_TAG_MONITOR_PTR, "monitor_ptr leak");
 			}
 		}
 	}
