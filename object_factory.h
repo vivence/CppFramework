@@ -26,8 +26,6 @@ template<typename _TObj>
 class object_manager_singleton;
 
 template<typename _T>
-class object_shared_ptr;
-template<typename _T>
 class object_monitor_ptr;
 
 class object_factory final : noncopyable {
@@ -68,13 +66,13 @@ private: // private functions
 
 private: // friend functions
 	friend struct object_ref_utils;
+	friend struct object_ptr_util;
+
 	template<typename _TID, typename _TObj>
 	friend class object_manager;
 	template<typename _TObj>
 	friend class object_manager_singleton;
-	friend struct object_ptr_util;
-	template<typename _T>
-	friend class object_shared_ptr;
+
 	template<typename _T>
 	friend class object_monitor_ptr;
 

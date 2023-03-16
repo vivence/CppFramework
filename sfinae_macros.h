@@ -7,6 +7,9 @@
 #define ENABLE_IF_DEF(_V) typename std::enable_if<_V>::type*
 #define ENABLE_IF(_V) ENABLE_IF_DEF(_V) = nullptr
 
+#define ENABLE_IF_NOT_DEF(_V) typename std::enable_if<!_V>::type*
+#define ENABLE_IF_NOT(_V) ENABLE_IF_NOT_DEF(_V) = nullptr
+
 #define ENABLE_IF_CLASS_DEF(_T) typename std::enable_if<std::is_class<_T>::value>::type*
 #define ENABLE_IF_CLASS(_T) ENABLE_IF_CLASS_DEF(_T) = nullptr
 

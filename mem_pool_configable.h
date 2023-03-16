@@ -7,6 +7,8 @@
 #include "mem_cell.h"
 #include "mem_pool_config.h"
 #include "mem_raw_pool.h"
+#include "environment.h"
+#include "bug_reporter.h"
 #include <memory>
 
 CORE_NAMESPACE_BEG
@@ -121,6 +123,10 @@ void* mem_pool_configable<_CellUnitSize, _BlockMaxSize>::alloc(size_t user_mem_s
 			mem_cell::get_cell(user_mem).set_pool_index(pool_index);
 		}
 		return user_mem;
+	}
+	else
+	{
+		environment::get_cur_bug_reporter().report(BUG_TAG_MEM_POOL, "pool_index is too large")
 	}
 	return nullptr;
 }

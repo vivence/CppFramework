@@ -11,26 +11,73 @@
 
 CORE_NAMESPACE_BEG
 
-struct object_ptr_utils {
-};
+template<typename _T>
+struct is_gc_disabled : public std::false_type {};
 
+template<typename _T>
+struct is_monitor_ptr : public std::false_type {};
+template<typename _T>
+struct is_monitor_ptr<object_monitor_ptr<_T>> : public std::true_type {};
+
+template<typename _T>
+struct is_mptr_type : public std::bool_constant<is_monitor_ptr<_T>::value> {};
+
+#define DisableGC \
+public: \
+void* get_this() const override { return (void*)this; } \
+void* operator new(size_t, void* mem) noexcept { return mem; } \
+inline void operator delete(void*, void* mem) {} \
+private:
 
 #define EnableMPtr 1
-#define EnableObjFactory EnableMPtr + 1
 
 #if EnableMPtr
 template<typename _T>
-using MPtr = object_monitor_ptr<_T>;
-#define GetRawPtr(p) p.operator->()
+using mptr_type = object_monitor_ptr<_T>;
+#define GetRawPtr(ptr) CORE object_ptr_utils::get_raw(ptr);
 #else
 template<typename T>
-using MPtr = T*;
-#define GetRawPtr(p) (p)
+using mptr_type = T*;
+#define GetRawPtr(ptr) ptr
 #endif
+
+struct object_ptr_utils {
+	template<typename _T, typename ..._Args, ENABLE_IF(is_gc_disabled<_T>::value)>
+	inline static mptr_type<_T> create(_Args&&... args)
+	{
+#if EnableMPtr
+		return std::move(mptr_type<_T>::create(std::forward<_Args>(args)...));
+#else
+		return environment::get_cur_object_factory().new_obj<_T>(std::forward<_Args>(args)...);
+#endif
+	}
+
+	template<typename _T, ENABLE_IF(is_gc_disabled<_T>::value)>
+	inline static bool destroy(mptr_type<_T> ptr)
+	{
+		
+#if EnableMPtr
+		return mptr_type<_T>::destroy(ptr);
+#else
+		return environment::get_cur_object_factory().delete_obj(ptr);
+#endif
+	}
+
+	template<typename _T>
+	inline static _T* get_raw(object_monitor_ptr<_T> ptr)
+	{
+		return ptr.operator->();
+	}
+	template<typename _T>
+	inline static _T* get_raw(_T* ptr)
+	{
+		return ptr;
+	}
+};
 
 #define NewDeclareClass(T) class T; \
-						   using T##_P = CORE MPtr<T> 
-
-#endif
+						   using T##_P = CORE mptr_type<T> 
 
 CORE_NAMESPACE_END
+
+#endif

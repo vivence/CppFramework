@@ -21,7 +21,6 @@ class object_monitor_ptr;
 
 template<typename _T>
 class object_monitor_ptr : dis_new {
-	static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
 
 public: // support external placement new
 	void* operator new(size_t, void* mem) noexcept { return mem; }
@@ -29,8 +28,10 @@ public: // support external placement new
 
 public:
 	struct _obj_monitored : public object {
+		virtual void* get_this() const { return (void*)this; }
+		static const size_t OBJECT_OFFSET = offsetof(_obj_monitored, obj_mem);
+
 		//---info--->
-		object* p_obj;
 		int ref_count;
 		bool destroyed;
 		//----------<
@@ -42,11 +43,10 @@ public:
 			, destroyed(false)
 		{
 			auto p = new (&obj_mem[0]) _T(std::forward<_Args>(args)...);
-			p_obj = static_cast<object*>(p);
 		}
 		~_obj_monitored()
 		{
-			p_obj->~object();
+			get_obj()->~_T();
 		}
 
 		_T* get_obj()
@@ -56,7 +56,6 @@ public:
 
 		static _obj_monitored* get(_T* p)
 		{
-			static const intptr_t OBJECT_OFFSET = (intptr_t) &((_obj_monitored*)0)->obj_mem;
 			return reinterpret_cast<_obj_monitored*>(((intptr_t)(p->get_this()) - OBJECT_OFFSET));
 		}
 
@@ -94,7 +93,7 @@ public: // create and destory
 		return std::move(ptr);
 	}
 
-	static bool destory(object_monitor_ptr ptr)
+	static bool destroy(object_monitor_ptr ptr)
 	{
 		if (nullptr != ptr._p)
 		{
