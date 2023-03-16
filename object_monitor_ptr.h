@@ -15,39 +15,22 @@
 CORE_NAMESPACE_BEG
 
 struct object_ptr_utils;
-//----------- 适配ML项目 --------------->
-namespace _container_details {
-	template<typename _T, bool has_default_ctor>
-	struct _default_construct;
-}
-//--------------------------------------<
 
 template<typename _T>
 class object_monitor_ptr;
 
-class object_monitored : dis_new {
-	void* operator new(size_t, void* mem) noexcept { return mem; }
-	inline void operator delete(void*, void* mem) {}
-
-protected:
-	template<typename _T>
-	friend class object_monitor_ptr;
-	virtual ~object_monitored() {}
-};
-
 template<typename _T>
 class object_monitor_ptr : dis_new {
-public:
+	static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
+
+public: // support external placement new
 	void* operator new(size_t, void* mem) noexcept { return mem; }
 	inline void operator delete(void*, void* mem) {}
-	//----------- 适配ML项目 --------------->
-	template<typename _T, bool has_default_ctor>
-	friend struct _container_details::_default_construct;
-	//--------------------------------------<
+
 public:
 	struct _obj_monitored : public object {
 		//---info--->
-		object_monitored* p_obj;
+		object* p_obj;
 		int ref_count;
 		bool destroyed;
 		//----------<
@@ -59,11 +42,11 @@ public:
 			, destroyed(false)
 		{
 			auto p = new (&obj_mem[0]) _T(std::forward<_Args>(args)...);
-			p_obj = static_cast<object_monitored*>(p);
+			p_obj = static_cast<object*>(p);
 		}
 		~_obj_monitored()
 		{
-			p_obj->~object_monitored();
+			p_obj->~object();
 		}
 
 		_T* get_obj()
@@ -71,10 +54,10 @@ public:
 			return reinterpret_cast<_T*>(&obj_mem[0]);
 		}
 
-		static _obj_monitored* get(const _T* p)
+		static _obj_monitored* get(_T* p)
 		{
 			static const intptr_t OBJECT_OFFSET = (intptr_t) &((_obj_monitored*)0)->obj_mem;
-			return reinterpret_cast<_obj_monitored*>(((intptr_t)p - OBJECT_OFFSET));
+			return reinterpret_cast<_obj_monitored*>(((intptr_t)(p->get_this()) - OBJECT_OFFSET));
 		}
 
 		static int add_ref(_T* p)
@@ -106,7 +89,7 @@ public: // create and destory
 	template<typename ..._Args>
 	static object_monitor_ptr create(_Args&&... args)
 	{
-		auto p_obj_monitored = environment::get_current_env().get_object_factory().new_obj<_obj_monitored>(std::forward<_Args>(args)...);
+		auto p_obj_monitored = environment::get_cur_object_factory().new_obj<_obj_monitored>(std::forward<_Args>(args)...);
 		object_monitor_ptr ptr(p_obj_monitored->get_obj());
 		return std::move(ptr);
 	}
@@ -115,15 +98,7 @@ public: // create and destory
 	{
 		if (nullptr != ptr._p)
 		{
-			if (typeid(*(ptr._p)) == typeid(_T))
-			{
-				_obj_monitored::get(ptr._p)->destroyed = true;
-			}
-			else
-			{
-				environment::get_current_env().get_bug_reporter().report(BUG_TAG_MONITOR_PTR, "monitor_ptr destory not _T pointer");
-				return false;
-			}
+			_obj_monitored::get(ptr._p)->destroyed = true;
 		}
 		return true;
 	}
@@ -133,7 +108,7 @@ private:
 	{
 		if (nullptr != _p && _obj_monitored::get(_p)->destroyed)
 		{
-			environment::get_current_env().get_bug_reporter().report(BUG_TAG_MONITOR_PTR, "monitor_ptr access destroyed object");
+			environment::get_cur_bug_reporter().report(BUG_TAG_MONITOR_PTR, "monitor_ptr access destroyed object");
 		}
 	}
 
@@ -157,11 +132,11 @@ public:
 			auto p_obj_monitored = _obj_monitored::get(_p);
 			if (p_obj_monitored->destroyed)
 			{
-				environment::get_current_env().get_object_factory().delete_obj(p_obj_monitored);
+				environment::get_cur_object_factory().delete_obj(p_obj_monitored);
 			}
 			else
 			{
-				environment::get_current_env().get_bug_reporter().report(BUG_TAG_MONITOR_PTR, "monitor_ptr leak");
+				environment::get_cur_bug_reporter().report(BUG_TAG_MONITOR_PTR, "monitor_ptr leak");
 			}
 		}
 	}

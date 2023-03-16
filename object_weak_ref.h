@@ -5,34 +5,49 @@
 #include "core.h"
 #include "dis_new.h"
 #include "ref.h"
-#include "object.h"
 #include "environment.h"
 #include <type_traits>
 
 CORE_NAMESPACE_BEG
 
+class support_weak_ref : noncopyable {
+	friend class object_factory;
+	template<typename _T>
+	friend class object_weak_ref;
+	typedef int _id_type;
+
+	static const _id_type _INVALID_ID = 0;
+	static const _id_type _FIRST_ID = 1;
+
+	_id_type _instance_id;
+
+protected:
+	support_weak_ref() : _instance_id(_INVALID_ID) {};
+	virtual ~support_weak_ref() { _instance_id = _INVALID_ID; }
+};
+
 template<typename _T>
 class object_weak_ref : dis_new {
-    static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
+    static_assert(std::is_base_of<support_weak_ref, _T>::value, "_T must be inherit from support_weak_ref");
 
-	object::_id_type _obj_id;
+    support_weak_ref::_id_type _obj_id;
     _T* _p;
 
 private:
     friend class object_factory;
     explicit object_weak_ref(_T* p)
         : _p(p)
-        , _obj_id((nullptr != p) ? static_cast<object*>(p)->_instance_id : object::_INVALID_ID)
+        , _obj_id((nullptr != p) ? static_cast<support_weak_ref*>(p)->_instance_id : support_weak_ref::_INVALID_ID)
     {
     }
     explicit object_weak_ref(const ref<_T>& obj_ref)
         : _p(const_cast<_T*>(obj_ref.operator->()))
-        , _obj_id((nullptr != obj_ref) ? obj_ref->_instance_id : object::_INVALID_ID)
+        , _obj_id((nullptr != obj_ref) ? obj_ref->_instance_id : support_weak_ref::_INVALID_ID)
     {
     }
 
 public:
-    object_weak_ref() : _obj_id(object::_INVALID_ID), _p(nullptr) {}
+    object_weak_ref() : _obj_id(support_weak_ref::_INVALID_ID), _p(nullptr) {}
 
 public:
     /// <summary>

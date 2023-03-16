@@ -3,6 +3,7 @@
 #define CONTAINERS_H
 
 #include "core.h"
+#include "mem_pool.h"
 #include <memory>
 #include <limits>
 #include <type_traits>
@@ -18,92 +19,7 @@
 #include <unordered_map>
 #include <string.h>
 
-
 CORE_NAMESPACE_BEG
-//----------- ÊÊÅäMLÏîÄ¿ --------------->
-namespace _container_details
-{
-	template<typename _T, bool has_default_ctor>
-	struct _default_construct
-	{
-		static void do_construct(_T* p, int num)
-		{
-			memset(p, 0, sizeof(_T) * num);
-		}
-	};
-
-	template<typename _T>
-	struct _default_construct<_T, true>
-	{
-		static void do_construct(_T* p, int num)
-		{
-			for (int i = 0; i < num; i++)
-			{
-				new(reinterpret_cast<void*>(p + i)) _T();
-			}
-		}
-	};
-
-	template<typename _T, bool is_class>
-	struct _default_deconstruct
-	{
-		static void do_deconstruct(_T* p, int num)
-		{
-		}
-	};
-
-	template<typename _T>
-	struct _default_deconstruct<_T, true>
-	{
-		static void do_deconstruct(_T* p, int num)
-		{
-			for (int i = 0; i < num; i++)
-			{
-                p[i].~_T();
-			}
-		}
-	};
-
-	template <class _T>
-    _T* _allocate_array(int num)
-    {
-        _T* ptr = static_cast<_T*>(::operator new(num * sizeof(_T)));
-        _default_construct<_T, std::is_default_constructible<_T>::value && !std::is_pointer<_T>::value>::do_construct(ptr, num);
-		return ptr;
-	}
-
-	template <class _T>
-    _T* _allocate_array(int num, size_t header)
-    {
-		char* ptr = static_cast<char*>(::operator new(header + num * sizeof(_T)));
-        memset(ptr, 0, header);
-        _default_construct<_T, std::is_default_constructible<_T>::value && !std::is_pointer<_T>::value>::do_construct(reinterpret_cast<_T*>(ptr + header), num);
-		return reinterpret_cast<_T*>(ptr);
-	}
-
-	template <class _T>
-	void _deallocate_array(void* mem, int num)
-	{
-        _default_deconstruct<_T, std::is_class<_T>::value>::do_deconstruct(reinterpret_cast<_T*>(mem), num);
-		::operator delete(mem, num * sizeof(_T));
-	}
-
-    template <class _T>
-	void _deallocate_array(void* mem, int num, size_t header)
-	{
-        _default_deconstruct<_T, std::is_class<_T>::value>::do_deconstruct(reinterpret_cast<_T*>((void*)((intptr_t)mem + header)), num);
-		::operator delete(mem, header + num * sizeof(_T));
-	}
-
-    inline void* _allocate_atomic(size_t n) 
-    { 
-        auto mem = ::operator new(n);
-        memset(mem, 0, n);
-        return mem;
-    }
-    inline void _deallocate_atomic(void* mem) { ::operator delete(mem); }
-}
-//-------------------------------------<
 
 template<typename _T>
 class allocator
@@ -131,7 +47,7 @@ public:
 
     pointer allocate(size_type count) 
     {
-        return static_cast<pointer>(::operator new(sizeof(_T) * count));
+        return static_cast<pointer>(mem_pool_utils::alloc(sizeof(_T) * count));
     }
 
     pointer allocate(size_type count, const_void_pointer hit)
@@ -142,7 +58,8 @@ public:
 
     void deallocate(pointer p, size_type count)
     {
-        ::operator delete(p, count);
+        count;
+        mem_pool_utils::free(p);
     }
 
     template<typename _U, typename ...Args>

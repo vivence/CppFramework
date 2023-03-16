@@ -24,19 +24,13 @@ class object : noncopyable, dis_new {
 	//--------------------------------------<
 
     friend class object_factory;
-    template<typename _T>
-    friend class object_weak_ref;
-    typedef int _id_type;
-
-    static const _id_type _INVALID_ID = 0;
-    static const _id_type _FIRST_ID = 1;
-
-    _id_type _instance_id;
-    void* _user_mem;
 
 protected:
-    object() : _instance_id(_INVALID_ID), _user_mem(nullptr) {};
-    virtual ~object() { _instance_id = _INVALID_ID; _user_mem = nullptr; }
+    object() {};
+    virtual ~object() {}
+
+private:
+    virtual void* get_this() const = 0;
 };
 
 CORE_NAMESPACE_END

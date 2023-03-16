@@ -37,7 +37,7 @@ class object_factory final : noncopyable {
 	mem_pool _mem_pool;
 	_temp_ref_mem_pool_pointer_type _p_temp_ref_pool;
 
-	object::_id_type _next_object_id = object::_FIRST_ID;
+	support_weak_ref::_id_type _next_object_id = support_weak_ref::_FIRST_ID;
 	_object_array_type _delay_destroy_objs;
 
 public:
@@ -53,12 +53,15 @@ private: // private functions
 	void _handle_delay_destroy();
 	void* _alloc_temp_ref_mem();
 	void _recyle_temp_refs();
-	template<typename _T>
+	template<typename _T, ENABLE_IF_CONVERTIBLE(_T, support_weak_ref)>
 	void _init_obj(_T* p, void* user_mem)
 	{
-		auto p_obj = static_cast<object*>(p);
-		p_obj->_instance_id = _next_object_id++;
-		p_obj->_user_mem = user_mem;
+		auto p_weak_obj = static_cast<support_weak_ref*>(p);
+		p_weak_obj->_instance_id = _next_object_id++;
+	}
+	template<typename _T, ENABLE_IF_NOT_CONVERTIBLE(_T, support_weak_ref)>
+	void _init_obj(_T* p, void* user_mem)
+	{
 	}
 	void _delete_obj(object* p_obj);
 	void _delete_obj_immediately(object* p_obj);

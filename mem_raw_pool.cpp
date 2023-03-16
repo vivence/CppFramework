@@ -69,6 +69,9 @@ size_t mem_raw_pool::cleanup_free_blocks()
 void mem_raw_pool::_push_cell(mem_cell& c)
 {
 	c.mark_unused();
+#if CLEAN_MEM
+	memset(c.user_mem, 0, _cell_size - mem_cell::UserMemOffset);
+#endif
 	c.p_next_cell = _free_head;
 	_free_head = &c;
 }

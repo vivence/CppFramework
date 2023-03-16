@@ -102,7 +102,10 @@ void* temp_ref_mem_pool::_pop_cell()
 object_factory::object_factory(size_t temp_ref_pool_cell_count)
 	: _p_temp_ref_pool(new temp_ref_mem_pool(sizeof(object_temp_ref<object>), temp_ref_pool_cell_count))
 {
-
+	if (nullptr == mem_pool_utils::p_mem_pool)
+	{
+		mem_pool_utils::p_mem_pool = &_mem_pool;
+	}
 }
 
 object_factory::~object_factory()
@@ -156,7 +159,7 @@ void object_factory::_delete_obj_immediately(object* p_obj)
 #if REF_SAFE_CHECK
 	object_temp_ref_destroyed_pointers::add_destroyed_pointer(p_obj);
 #endif // REF_SAFE_CHECK
-	auto user_mem = p_obj->_user_mem;
+	auto user_mem = p_obj->get_this();
 	p_obj->~object();
 	_mem_pool.free(user_mem);
 }
