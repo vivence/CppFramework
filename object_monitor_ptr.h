@@ -29,7 +29,6 @@ public: // support external placement new
 public:
 	struct _obj_monitored : public object {
 		virtual void* get_this() const { return (void*)this; }
-		static const size_t OBJECT_OFFSET = offsetof(_obj_monitored, obj_mem);
 
 		//---info--->
 		int ref_count;
@@ -56,6 +55,7 @@ public:
 
 		static _obj_monitored* get(_T* p)
 		{
+			static const size_t OBJECT_OFFSET = offsetof(_obj_monitored, obj_mem);
 			return reinterpret_cast<_obj_monitored*>(((intptr_t)(p->get_this()) - OBJECT_OFFSET));
 		}
 

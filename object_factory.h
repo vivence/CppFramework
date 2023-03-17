@@ -66,7 +66,7 @@ private: // private functions
 
 private: // friend functions
 	friend struct object_ref_utils;
-	friend struct object_ptr_util;
+	friend struct object_ptr_utils;
 
 	template<typename _TID, typename _TObj>
 	friend class object_manager;

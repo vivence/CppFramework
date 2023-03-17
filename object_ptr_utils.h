@@ -11,6 +11,12 @@
 
 CORE_NAMESPACE_BEG
 
+//template <int _V>
+//using int_constant = std::integral_constant<int, _V>;
+//
+//template<typename _T>
+//struct offset_of_object : public int_constant<offsetof(object, real_mem) - offsetof(_T, real_mem)> {};
+
 template<typename _T>
 struct is_gc_disabled : public std::false_type {};
 
@@ -22,14 +28,13 @@ struct is_monitor_ptr<object_monitor_ptr<_T>> : public std::true_type {};
 template<typename _T>
 struct is_mptr_type : public std::bool_constant<is_monitor_ptr<_T>::value> {};
 
-#define DisableGC \
-public: \
-void* get_this() const override { return (void*)this; } \
-void* operator new(size_t, void* mem) noexcept { return mem; } \
-inline void operator delete(void*, void* mem) {} \
-private:
+template<typename _T>
+struct is_object_ptr_type : public std::bool_constant<std::is_base_of<object, typename std::remove_pointer<_T>::type>::value> {};
 
-#define EnableMPtr 1
+template<typename _T>
+struct is_gc_disabled_ptr : public std::bool_constant<is_mptr_type<_T>::value || is_object_ptr_type<_T>::value> {};
+
+#define EnableMPtr 0
 
 #if EnableMPtr
 template<typename _T>
@@ -52,12 +57,22 @@ struct object_ptr_utils {
 #endif
 	}
 
-	template<typename _T, ENABLE_IF(is_gc_disabled<_T>::value)>
-	inline static bool destroy(mptr_type<_T> ptr)
+	template<typename _P, typename ..._Args, ENABLE_IF(is_gc_disabled_ptr<_P>::value)>
+	inline static _P create_by_ptr_type(_Args&&... args)
+	{
+#if EnableMPtr
+		return std::move(_P::create(std::forward<_Args>(args)...));
+#else
+		return environment::get_cur_object_factory().new_obj<typename std::remove_pointer<_P>::type>(std::forward<_Args>(args)...);
+#endif
+	}
+
+	template<typename _P, ENABLE_IF(is_gc_disabled_ptr<_P>::value)>
+	inline static bool destroy(_P ptr)
 	{
 		
 #if EnableMPtr
-		return mptr_type<_T>::destroy(ptr);
+		return _P::destroy(ptr);
 #else
 		return environment::get_cur_object_factory().delete_obj(ptr);
 #endif
@@ -75,7 +90,22 @@ struct object_ptr_utils {
 	}
 };
 
-#define NewDeclareClass(T) class T; \
+#define NewBindableClass(...) BindableClass(__VA_ARGS__), public BindableClass(CORE object)
+
+#define DeclareDisableGC \
+public: \
+void* get_this() const override { return (void*)this; } \
+void* operator new(size_t, void* mem) noexcept { return mem; } \
+inline void operator delete(void*, void* mem) {} \
+private:
+
+#define DefineDisableGC(TT) \
+CORE_NAMESPACE_BEG \
+template<> \
+struct is_gc_disabled<TT> : public std::true_type {}; \
+CORE_NAMESPACE_END 
+
+#define MPtrDeclareClass(T) class T; \
 						   using T##_P = CORE mptr_type<T> 
 
 CORE_NAMESPACE_END
