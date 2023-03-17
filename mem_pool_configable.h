@@ -126,7 +126,7 @@ void* mem_pool_configable<_CellUnitSize, _BlockMaxSize>::alloc(size_t user_mem_s
 	}
 	else
 	{
-		environment::get_cur_bug_reporter().report(BUG_TAG_MEM_POOL, "pool_index is too large")
+		environment::get_cur_bug_reporter().report(BUG_TAG_MEM_POOL, "pool_index is too large");
 	}
 	return nullptr;
 }
