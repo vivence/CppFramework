@@ -10,7 +10,11 @@ CORE_NAMESPACE_BEG
 
 class object : noncopyable, dis_new {
     void* operator new(size_t, void* mem) noexcept { return mem; }
-    inline void operator delete(void*, void* mem){}
+	inline void operator delete(void*, void* mem) {}
+    //---解决gnu c++17编译android版本的问题--->
+	void* operator new(size_t) noexcept { return nullptr; };
+    void operator delete(void*) {};
+	//----------------------------------------<
 
     friend class object_factory;
 

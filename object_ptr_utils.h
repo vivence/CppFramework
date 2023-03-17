@@ -3,6 +3,7 @@
 #define OBJECT_PTR_UTILS_H
 
 #include "core.h"
+#include "utils.h"
 #include "object_monitor_ptr.h"
 #include "sfinae_macros.h"
 #include "environment.h"
@@ -18,21 +19,21 @@ CORE_NAMESPACE_BEG
 //struct offset_of_object : public int_constant<offsetof(object, real_mem) - offsetof(_T, real_mem)> {};
 
 template<typename _T>
-struct is_gc_disabled : public std::false_type {};
+struct is_gc_disabled : public false_type {};
 
 template<typename _T>
-struct is_monitor_ptr : public std::false_type {};
+struct is_monitor_ptr : public false_type {};
 template<typename _T>
-struct is_monitor_ptr<object_monitor_ptr<_T>> : public std::true_type {};
+struct is_monitor_ptr<object_monitor_ptr<_T>> : public true_type {};
 
 template<typename _T>
-struct is_mptr_type : public std::bool_constant<is_monitor_ptr<_T>::value> {};
+struct is_mptr_type : public bool_constant<is_monitor_ptr<_T>::value> {};
 
 template<typename _T>
-struct is_object_ptr_type : public std::bool_constant<std::is_base_of<object, typename std::remove_pointer<_T>::type>::value> {};
+struct is_object_ptr_type : public bool_constant<std::is_base_of<object, typename std::remove_pointer<_T>::type>::value> {};
 
 template<typename _T>
-struct is_gc_disabled_ptr : public std::bool_constant<is_mptr_type<_T>::value || is_object_ptr_type<_T>::value> {};
+struct is_gc_disabled_ptr : public bool_constant<is_mptr_type<_T>::value || is_object_ptr_type<_T>::value> {};
 
 #define EnableMPtr 0
 
@@ -92,17 +93,21 @@ struct object_ptr_utils {
 
 #define NewBindableClass(...) BindableClass(__VA_ARGS__), public BindableClass(CORE object)
 
-#define DeclareDisableGC \
+#define DeclareDisableGC(T) \
+protected: \
+virtual ~T() {} \
 public: \
 void* get_this() const override { return (void*)this; } \
 void* operator new(size_t, void* mem) noexcept { return mem; } \
 inline void operator delete(void*, void* mem) {} \
+void* operator new(size_t) noexcept { return nullptr; }; \
+void operator delete(void*) {}; \
 private:
 
-#define DefineDisableGC(TT) \
+#define DefineDisableGC(T) \
 CORE_NAMESPACE_BEG \
 template<> \
-struct is_gc_disabled<TT> : public std::true_type {}; \
+struct is_gc_disabled<T> : public std::true_type {}; \
 CORE_NAMESPACE_END 
 
 #define MPtrDeclareClass(T) class T; \

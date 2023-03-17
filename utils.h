@@ -72,6 +72,27 @@ public:
 	}
 };
 
+template <class _Ty, _Ty _Val>
+struct integral_constant {
+	static constexpr _Ty value = _Val;
+
+	using value_type = _Ty;
+	using type = integral_constant;
+
+	constexpr operator value_type() const noexcept {
+		return value;
+	}
+
+	constexpr value_type operator()() const noexcept {
+		return value;
+	}
+};
+
+template <bool _Val>
+using bool_constant = integral_constant<bool, _Val>;
+
+using true_type = bool_constant<true>;
+using false_type = bool_constant<false>;
 
 CORE_NAMESPACE_END
 

@@ -68,7 +68,6 @@ public:
 			return ++(get(p)->ref_count);
 		}
 
-		template<typename _T>
 		static int remove_ref(_T* p)
 		{
 			if (nullptr == p)
