@@ -10,11 +10,14 @@
 
 CORE_NAMESPACE_BEG
 
+mem_raw_pool::fp_mem_alloc_type mem_raw_pool::fp_mem_alloc = ::operator new;
+mem_raw_pool::fp_mem_free_type mem_raw_pool::fp_mem_free = ::operator delete;
+
 mem_raw_pool::~mem_raw_pool()
 {
 	for (auto block : _blocks)
 	{
-		::operator delete(block);
+		fp_mem_free(block);
 	}
 	_blocks.clear();
 
@@ -56,7 +59,7 @@ size_t mem_raw_pool::cleanup_free_blocks()
 			// 1.
 			_pop_block_cells_from_free_link(block);
 			// 2.
-			::operator delete(block);
+			fp_mem_free(block);
 			// 3.
 			_blocks.pop_back();
 			// 4.
@@ -94,7 +97,7 @@ mem_cell& mem_raw_pool::_pop_cell()
 void mem_raw_pool::_new_block()
 {
 	// 1.
-	void* block = ::operator new(_cell_size * _cell_count);
+	void* block = fp_mem_alloc(_cell_size * _cell_count);
 
 	// 2.
 	_push_block_cells_into_free_link(block);
