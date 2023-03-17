@@ -91,7 +91,8 @@ struct object_ptr_utils {
 	}
 };
 
-#define NewBindableClass(...) BindableClass(__VA_ARGS__), public BindableClass(CORE object)
+struct object_empty_class {};
+#define NewBindableClass(...) BindableClass(__VA_ARGS__), public std::conditional<std::is_base_of<CORE object, __VA_ARGS__>::value, CORE object_empty_class, CORE object>::type
 
 #define DeclareDisableGC(T) \
 protected: \
@@ -107,7 +108,7 @@ private:
 #define DefineDisableGC(T) \
 CORE_NAMESPACE_BEG \
 template<> \
-struct is_gc_disabled<T> : public std::true_type {}; \
+struct is_gc_disabled<T> : public true_type {}; \
 CORE_NAMESPACE_END 
 
 #define MPtrDeclareClass(T) class T; \
