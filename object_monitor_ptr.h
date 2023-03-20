@@ -75,7 +75,7 @@ public: // create and destroy
 	{
 		if (type_offset::INVALID_VALUE == type_offset::value)
 		{
-			type_offset::value = (int)offsetof(info_for_monitor_ptr, ref_count) - (int)offsetof(_T, ref_count);
+			type_offset::value = (int)offsetof(_T, ref_count) - (int)offsetof(info_for_monitor_ptr, ref_count);
 		}
 		return object_monitor_ptr(environment::get_cur_object_factory().new_obj<_T>(std::forward<_Args>(args)...));
 	}
