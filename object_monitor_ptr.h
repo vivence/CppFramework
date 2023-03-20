@@ -104,6 +104,8 @@ private: // not allowed
 
 private: // private constructors
 	friend struct object_ptr_utils;
+	template<typename _U>
+	friend class object_monitor_ptr;
 	explicit object_monitor_ptr(_T* p) noexcept : _p(p) { _check_valid(); _add_ref(); }
 	explicit object_monitor_ptr(const _T* p) noexcept : object_monitor_ptr(const_cast<_T*>(p)) {}
 

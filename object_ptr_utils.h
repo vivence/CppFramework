@@ -108,7 +108,6 @@ public std::conditional<std::is_base_of<CORE object, __VA_ARGS__>::value, CORE o
 protected: \
 virtual ~T() {} \
 public: \
-void* get_this() const override { return (void*)this; } \
 void* operator new(size_t, void* mem) noexcept { return mem; } \
 inline void operator delete(void*, void* mem) {} \
 void* operator new(size_t) noexcept { return nullptr; }; \
