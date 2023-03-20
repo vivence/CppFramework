@@ -28,8 +28,6 @@ public: // support external placement new
 
 public:
 	struct _obj_monitored : public object {
-		virtual void* get_this() const { return (void*)this; }
-
 		//---info--->
 		int ref_count;
 		bool destroyed;

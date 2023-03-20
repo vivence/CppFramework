@@ -17,13 +17,11 @@ class object : noncopyable, dis_new {
 	//----------------------------------------<
 
     friend class object_factory;
+    void* _mem = nullptr;
 
 protected:
     object() {};
     virtual ~object() {}
-
-public:
-    virtual void* get_this() const = 0;
 };
 
 CORE_NAMESPACE_END

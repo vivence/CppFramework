@@ -56,10 +56,15 @@ private: // private functions
 	{
 		auto p_weak_obj = static_cast<support_weak_ref*>(p);
 		p_weak_obj->_instance_id = _next_object_id++;
+
+		auto p_obj = static_cast<object*>(p);
+		p_obj->_mem = user_mem;
 	}
 	template<typename _T, ENABLE_IF_NOT_CONVERTIBLE(_T, support_weak_ref)>
 	void _init_obj(_T* p, void* user_mem)
 	{
+		auto p_obj = static_cast<object*>(p);
+		p_obj->_mem = user_mem;
 	}
 	void _delete_obj(object* p_obj);
 	void _delete_obj_immediately(object* p_obj);
