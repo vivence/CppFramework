@@ -17,10 +17,10 @@ CORE_NAMESPACE_BEG
 
 struct object_ptr_utils;
 
-struct info_for_moniter_ptr {
+struct info_for_monitor_ptr {
 	int ref_count = 0;
 	bool destroyed = false;
-	virtual ~info_for_moniter_ptr() {}
+	virtual ~info_for_monitor_ptr() {}
 };
 
 template<typename _T>
@@ -37,14 +37,14 @@ private:
 
 	_T* _p;
 
-private: // moniter
-	info_for_moniter_ptr* _get_info() const
+private: // monitor
+	info_for_monitor_ptr* _get_info() const
 	{
 		if (nullptr == _p)
 		{
 			return nullptr;
 		}
-		return reinterpret_cast<info_for_moniter_ptr*>((intptr_t)_p + type_offset::value);
+		return reinterpret_cast<info_for_monitor_ptr*>((intptr_t)_p + type_offset::value);
 	}
 	int _add_ref() const
 	{
@@ -74,7 +74,7 @@ public: // create and destory
 	{
 		if (type_offset::INVALID_VALUE == type_offset::value)
 		{
-			type_offset::value = (int)offsetof(info_for_moniter_ptr, ref_count) - (int)offsetof(_T, ref_count);
+			type_offset::value = (int)offsetof(info_for_monitor_ptr, ref_count) - (int)offsetof(_T, ref_count);
 		}
 		return object_monitor_ptr(environment::get_cur_object_factory().new_obj<_T>(std::forward<_Args>(args)...));
 	}

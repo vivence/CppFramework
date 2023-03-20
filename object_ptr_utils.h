@@ -35,7 +35,7 @@ struct is_object_ptr_type : public bool_constant<std::is_base_of<object, typenam
 template<typename _T>
 struct is_gc_disabled_ptr : public bool_constant<is_mptr_type<_T>::value || is_object_ptr_type<_T>::value> {};
 
-#define EnableMPtr 0
+#define EnableMPtr 1 // enable monitor ptr
 
 #if EnableMPtr
 template<typename _T>
@@ -92,7 +92,17 @@ struct object_ptr_utils {
 };
 
 struct object_empty_class {};
-#define NewBindableClass(...) BindableClass(__VA_ARGS__), public std::conditional<std::is_base_of<CORE object, __VA_ARGS__>::value, CORE object_empty_class, CORE object>::type
+#if EnableMPtr
+struct object_empty_class_1 {};
+#define NewBindableClass(...) \
+BindableClass(__VA_ARGS__), \
+public std::conditional<std::is_base_of<CORE object, __VA_ARGS__>::value, CORE object_empty_class, CORE object>::type, \
+public std::conditional<std::is_base_of<CORE info_for_monitor_ptr, __VA_ARGS__>::value, CORE object_empty_class_1, CORE info_for_monitor_ptr>::type
+#else
+#define NewBindableClass(...) \
+BindableClass(__VA_ARGS__), \
+public std::conditional<std::is_base_of<CORE object, __VA_ARGS__>::value, CORE object_empty_class, CORE object>::type
+#endif
 
 #define DeclareDisableGC(T) \
 protected: \
