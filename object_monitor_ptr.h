@@ -19,6 +19,7 @@ struct object_ptr_utils;
 
 struct info_for_monitor_ptr {
 	int ref_count = 0;
+	bool cs_refed = false;
 	bool destroyed = false;
 	virtual ~info_for_monitor_ptr() {}
 };
@@ -68,7 +69,7 @@ private: // monitor
 public: // typedef
 	using value_type = _T;
 
-public: // create and destory
+public: // create and destroy
 	template<typename ..._Args>
 	static object_monitor_ptr create(_Args&&... args)
 	{
@@ -85,6 +86,10 @@ public: // create and destory
 		if (nullptr != p_info)
 		{
 			p_info->destroyed = true;
+			if (p_info->cs_refed)
+			{
+				environment::get_cur_bug_reporter().report(BUG_TAG_MONITOR_PTR, "monitor_ptr destroyed but still be referenced by c#");
+			}
 		}
 		return true;
 	}
@@ -121,13 +126,17 @@ public:
 			auto p_info = _get_info();
 			if (nullptr != p_info)
 			{
+				if (p_info->cs_refed)
+				{
+					environment::get_cur_bug_reporter().report(BUG_TAG_MONITOR_PTR, "monitor_ptr (there's no pointer but still be referenced by c#)");
+				}
 				if (p_info->destroyed)
 				{
 					environment::get_cur_object_factory().delete_obj(_p);
 				}
 				else
 				{
-					environment::get_cur_bug_reporter().report(BUG_TAG_MONITOR_PTR, "monitor_ptr leak");
+					environment::get_cur_bug_reporter().report(BUG_TAG_MONITOR_PTR, "monitor_ptr leak (there's no pointer but not destroyed)");
 				}
 			}
 		}
