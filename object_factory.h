@@ -77,6 +77,8 @@ private: // friend functions
 	friend class object_manager;
 	template<typename _TObj>
 	friend class object_manager_singleton;
+	template<typename _TObj>
+	friend class object_manager_without_id;
 
 	template<typename _T>
 	friend class object_monitor_ptr;
