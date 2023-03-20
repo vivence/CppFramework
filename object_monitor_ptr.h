@@ -11,72 +11,59 @@
 #include "object_factory.h"
 #include "bug_reporter.h"
 #include <utility>
+#include <stdlib.h>
 
 CORE_NAMESPACE_BEG
 
 struct object_ptr_utils;
 
-template<typename _T>
-class object_monitor_ptr;
+struct info_for_moniter_ptr {
+	int ref_count = 0;
+	bool destroyed = false;
+	virtual ~info_for_moniter_ptr() {}
+};
 
 template<typename _T>
 class object_monitor_ptr : dis_new {
-
 public: // support external placement new
 	void* operator new(size_t, void* mem) noexcept { return mem; }
 	inline void operator delete(void*, void* mem) {}
 
-public:
-	struct _obj_monitored : public object {
-		//---info--->
-		int ref_count;
-		bool destroyed;
-		//----------<
-		char obj_mem[sizeof(_T)];
-
-		template<typename ..._Args>
-		explicit _obj_monitored(_Args&&... args)
-			: ref_count(0)
-			, destroyed(false)
-		{
-			auto p = new (&obj_mem[0]) _T(std::forward<_Args>(args)...);
-		}
-		~_obj_monitored()
-		{
-			get_obj()->~_T();
-		}
-
-		_T* get_obj()
-		{
-			return reinterpret_cast<_T*>(&obj_mem[0]);
-		}
-
-		static _obj_monitored* get(_T* p)
-		{
-			static const size_t OBJECT_OFFSET = offsetof(_obj_monitored, obj_mem);
-			return reinterpret_cast<_obj_monitored*>(((intptr_t)(p->get_this()) - OBJECT_OFFSET));
-		}
-
-		static int add_ref(_T* p)
-		{
-			if (nullptr == p)
-			{
-				return 0;
-			}
-			return ++(get(p)->ref_count);
-		}
-
-		static int remove_ref(_T* p)
-		{
-			if (nullptr == p)
-			{
-				return 0;
-			}
-			return --(get(p)->ref_count);
-		}
+private:
+	struct type_offset {
+		static const int INVALID_VALUE = 9999;
+		static int value;
 	};
 
 	_T* _p;
+
+private: // moniter
+	info_for_moniter_ptr* _get_info() const
+	{
+		if (nullptr == _p)
+		{
+			return nullptr;
+		}
+		return reinterpret_cast<info_for_moniter_ptr*>((intptr_t)_p + type_offset::value);
+	}
+	int _add_ref() const
+	{
+		auto p_info = _get_info();
+		if (nullptr != p_info)
+		{
+			return ++p_info->ref_count;
+		}
+		return 0;
+	}
+	int _remove_ref() const
+	{
+		auto p_info = _get_info();
+		if (nullptr != p_info)
+		{
+			return --p_info->ref_count;
+		}
+		return 0;
+	}
 
 public: // typedef
 	using value_type = _T;
@@ -85,16 +72,19 @@ public: // create and destory
 	template<typename ..._Args>
 	static object_monitor_ptr create(_Args&&... args)
 	{
-		auto p_obj_monitored = environment::get_cur_object_factory().new_obj<_obj_monitored>(std::forward<_Args>(args)...);
-		object_monitor_ptr ptr(p_obj_monitored->get_obj());
-		return std::move(ptr);
+		if (type_offset::INVALID_VALUE == type_offset::value)
+		{
+			type_offset::value = (int)offsetof(info_for_moniter_ptr, ref_count) - (int)offsetof(_T, ref_count);
+		}
+		return object_monitor_ptr(environment::get_cur_object_factory().new_obj<_T>(std::forward<_Args>(args)...));
 	}
 
 	static bool destroy(object_monitor_ptr ptr)
 	{
-		if (nullptr != ptr._p)
+		auto p_info = ptr._get_info();
+		if (nullptr != p_info)
 		{
-			_obj_monitored::get(ptr._p)->destroyed = true;
+			p_info->destroyed = true;
 		}
 		return true;
 	}
@@ -102,7 +92,8 @@ public: // create and destory
 private:
 	void _check_valid() const
 	{
-		if (nullptr != _p && _obj_monitored::get(_p)->destroyed)
+		auto p_info = _get_info();
+		if (nullptr != p_info && p_info->destroyed)
 		{
 			environment::get_cur_bug_reporter().report(BUG_TAG_MONITOR_PTR, "monitor_ptr access destroyed object");
 		}
@@ -113,7 +104,7 @@ private: // not allowed
 
 private: // private constructors
 	friend struct object_ptr_utils;
-	explicit object_monitor_ptr(_T* p) noexcept : _p(p) { _check_valid(); _obj_monitored::add_ref(_p); }
+	explicit object_monitor_ptr(_T* p) noexcept : _p(p) { _check_valid(); _add_ref(); }
 	explicit object_monitor_ptr(const _T* p) noexcept : object_monitor_ptr(const_cast<_T*>(p)) {}
 
 public: // default constructors
@@ -123,16 +114,19 @@ public: // default constructors
 public:
 	~object_monitor_ptr()
 	{
-		if (nullptr != _p && 0 >= _obj_monitored::remove_ref(_p))
+		if (0 >= _remove_ref())
 		{
-			auto p_obj_monitored = _obj_monitored::get(_p);
-			if (p_obj_monitored->destroyed)
+			auto p_info = _get_info();
+			if (nullptr != p_info)
 			{
-				environment::get_cur_object_factory().delete_obj(p_obj_monitored);
-			}
-			else
-			{
-				environment::get_cur_bug_reporter().report(BUG_TAG_MONITOR_PTR, "monitor_ptr leak");
+				if (p_info->destroyed)
+				{
+					environment::get_cur_object_factory().delete_obj(_p);
+				}
+				else
+				{
+					environment::get_cur_bug_reporter().report(BUG_TAG_MONITOR_PTR, "monitor_ptr leak");
+				}
 			}
 		}
 	}
@@ -240,6 +234,9 @@ public: // comparators as right hand
 	template<typename _DD, typename _TT, ENABLE_IF_CONVERTIBLE_DEF(_DD*, _TT*)>
 	friend bool operator !=(const _DD* p, const object_monitor_ptr<_TT>& wp);
 };
+
+template<typename _T>
+int object_monitor_ptr<_T>::type_offset::value = object_monitor_ptr<_T>::type_offset::INVALID_VALUE;
 
 template<typename _TT>
 inline bool operator ==(nullptr_t, const object_monitor_ptr<_TT>& wp) { return nullptr == wp._p; }
