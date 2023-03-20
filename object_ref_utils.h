@@ -32,7 +32,7 @@ struct object_ref_utils {
 	}
 
 	template<typename _D, typename _B, ENABLE_IF_NOT_CONVERTIBLE(_D, _B)>
-	static object_weak_ref<_D> v(object_weak_ref<_B> obj_ref, object_factory& obj_factory = _get_object_factory())
+	static object_weak_ref<_D> cast(object_weak_ref<_B> obj_ref, object_factory& obj_factory = _get_object_factory())
 	{
 		return obj_factory.get_weak_ref(dynamic_cast<_D*>(obj_ref._p));
 	}
