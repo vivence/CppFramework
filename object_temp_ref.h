@@ -44,22 +44,20 @@ class object_temp_ref_destroyed_pointers {
 
 
 template<typename _T>
-class object_temp_ref : public ref<_T>, noncopyable {
+class object_temp_ref final : public ref<_T>, noncopyable {
 	static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
 
 	void* operator new(size_t, void* mem) noexcept { return mem; }
 	inline void operator delete(void*, void* mem) {}
-	friend class object_factory;
-	friend struct object_ref_utils;
 
 public:
 	static object_temp_ref null_ref;
 
 private:
 	friend class object_factory;
+	friend struct object_ref_utils;
 	explicit object_temp_ref(_T* p) : ref<_T>(p) {}
 	explicit object_temp_ref(const ref<_T>& obj_ref) : ref<_T>(obj_ref) {}
-	virtual ~object_temp_ref() {}
 
 #if REF_SAFE_CHECK
 public:

@@ -27,11 +27,14 @@ protected:
 };
 
 template<typename _T>
-class object_weak_ref : dis_new {
+class object_weak_ref final : dis_new {
     static_assert(std::is_base_of<support_weak_ref, _T>::value, "_T must be inherit from support_weak_ref");
 
     support_weak_ref::_id_type _obj_id;
-    _T* _p;
+	_T* _p;
+
+public:
+	static object_weak_ref null_ref;
 
 private:
     friend class object_factory;
@@ -67,9 +70,6 @@ private:
         }
         return _p;
     }
-
-public:
-	static object_weak_ref null_ref;
 
 public:
     inline bool operator ==(const _T* p) const { return _p == p && (nullptr == _p || _p->_instance_id == _obj_id); }

@@ -9,10 +9,12 @@
 #include "object.h"
 #include "object_weak_ref.h"
 #include "object_temp_ref.h"
+#include "object_shared_ref.h"
 #include "sfinae_macros.h"
 #include <type_traits>
 #include <vector>
 #include <memory>
+#include <utility>
 #include <initializer_list>
 
 CORE_NAMESPACE_BEG
@@ -134,6 +136,19 @@ private: // friend functions
 	{
 		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
 		return *new(_alloc_temp_ref_mem()) object_temp_ref<_T>(obj_ref);
+	}
+
+	template<typename _T>
+	object_shared_ref<_T> get_shared_ref(_T* p_obj)
+	{
+		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
+		return std::move(object_shared_ref<_T>(p_obj));
+	}
+	template<typename _T>
+	object_shared_ref<_T> get_shared_ref(const ref<_T>& obj_ref)
+	{
+		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
+		return std::move(object_shared_ref<_T>(obj_ref));
 	}
 };
 
