@@ -16,6 +16,15 @@ typedef void (*fp_mem_free_type)(void* mem);
 static fp_mem_alloc_type s_fp_mem_alloc = ::operator new;
 static fp_mem_free_type s_fp_mem_free = ::operator delete;
 
+inline bool* _new_block_freed_state()
+{
+	return new bool(false);
+}
+inline void _delete_block_freed_state(bool* p_state)
+{
+	delete p_state;
+}
+
 mem_raw_pool::~mem_raw_pool()
 {
 	for (auto block : _blocks)
@@ -27,6 +36,13 @@ mem_raw_pool::~mem_raw_pool()
 	_free_head = nullptr;
 	_cell_size = 0;
 	_cell_count = 0;
+
+	for (auto p_state : _blocks_freed_state)
+	{
+		_delete_block_freed_state(p_state);
+	}
+	_blocks_freed_state.clear();
+	_blocks_freed_state_map.clear();
 }
 
 void* mem_raw_pool::alloc()
@@ -66,6 +82,8 @@ size_t mem_raw_pool::cleanup_free_blocks()
 			// 3.
 			_blocks.pop_back();
 			// 4.
+			_try_set_block_freed_state(block, true);
+			// 5.
 			++cleanup_count;
 		}
 	}
@@ -179,6 +197,46 @@ void mem_raw_pool::_pop_block_cells_from_free_link(void* block)
 		}
 		p_cell = p_cell->p_next_cell;
 	}
+}
+
+bool* mem_raw_pool::_get_block_freed_state(void* block)
+{
+	auto iter = _blocks_freed_state_map.find(block);
+	if (_blocks_freed_state_map.end() == iter)
+	{
+		auto p_state = _new_block_freed_state();
+		_blocks_freed_state.push_back(p_state);
+		_blocks_freed_state_map[block] = p_state;
+		return p_state;
+	}
+	return iter->second;
+}
+
+bool mem_raw_pool::_try_set_block_freed_state(void* block, bool state)
+{
+	auto iter = _blocks_freed_state_map.find(block);
+	if (_blocks_freed_state_map.end() == iter)
+	{
+		return false;
+	}
+	*iter->second = state;
+	return true;
+}
+
+bool* mem_raw_pool::get_pool_mem_freed_ptr(void* user_mem)
+{
+	auto block_size = _cell_size * _cell_count;
+	for (auto block : _blocks)
+	{
+		if ((intptr_t)block <= (intptr_t)user_mem && ((intptr_t)block + (intptr_t)block_size) > (intptr_t)user_mem)
+		{
+			return _get_block_freed_state(block);
+		}
+	}
+	environment::get_current_env().get_bug_reporter().report(
+		BUG_TAG_MEM_RAW_POOL,
+		"mem_raw_pool get_pool_mem_freed_ptr failed: user_mem is not in this pool!");
+	return nullptr;
 }
 
 CORE_NAMESPACE_END

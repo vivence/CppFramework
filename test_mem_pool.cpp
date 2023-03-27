@@ -1,6 +1,7 @@
 #include "test_mem_pool.h"
 #include "mem_pool.h"
 #include <vector>
+#include <algorithm>
 
 /*
 * mem_poolµ•‘™≤‚ ‘”√¿˝
@@ -34,6 +35,7 @@ public:
 	}
 public:
 	void Add(void* mem) { _mems.push_back(mem); }
+	void Remove(void* mem) { _mems.erase(std::remove(_mems.begin(), _mems.end(), mem)); }
 	void Clear()
 	{
 		for (auto mem : _mems)
@@ -212,7 +214,7 @@ bool test_mem_pool::test_cleanup_step()
 	auto block_count = raw_pool._blocks.size();
 	if (0 != block_count)
 	{
-		_out << "test_alloc failed: block_count is not 0, it is " << block_count << std::endl;
+		_out << "test_cleanup_step failed: block_count is not 0, it is " << block_count << std::endl;
 		return false;
 	}
 
@@ -221,18 +223,36 @@ bool test_mem_pool::test_cleanup_step()
 		auto_free.Add(pool.alloc<int>());
 	}
 	auto mem = pool.alloc<int>();
+	auto_free.Add(mem);
 	block_count = raw_pool._blocks.size();
 	if (2 != block_count)
 	{
 		_out << "test_alloc failed: block_count is not 2, it is " << block_count << std::endl;
 		return false;
 	}
+	auto p_mem_freed = pool.get_pool_mem_freed_ptr(mem);
+	if (nullptr == p_mem_freed)
+	{
+		_out << "test_cleanup_step failed: p_mem_freed is nullptr" << std::endl;
+		return false;
+	}
+	if (*p_mem_freed)
+	{
+		_out << "test_cleanup_step failed: *p_mem_freed is true " << std::endl;
+		return false;
+	}
+	auto_free.Remove(mem);
 	pool.free(mem);
 	mem = nullptr;
 	block_count = raw_pool._blocks.size();
 	if (2 != block_count)
 	{
-		_out << "test_alloc failed: block_count is not 2, it is " << block_count << std::endl;
+		_out << "test_cleanup_step failed: block_count is not 2, it is " << block_count << std::endl;
+		return false;
+	}
+	if (*p_mem_freed)
+	{
+		_out << "test_cleanup_step failed: *p_mem_freed is true " << std::endl;
 		return false;
 	}
 
@@ -240,7 +260,12 @@ bool test_mem_pool::test_cleanup_step()
 	block_count = raw_pool._blocks.size();
 	if (1 != block_count)
 	{
-		_out << "test_alloc failed: block_count is not 1, it is " << block_count << std::endl;
+		_out << "test_cleanup_step failed: block_count is not 1, it is " << block_count << std::endl;
+		return false;
+	}
+	if (!*p_mem_freed)
+	{
+		_out << "test_cleanup_step failed: *p_mem_freed is false " << std::endl;
 		return false;
 	}
 	_out << "test_cleanup_step check block count: OK" << std::endl;

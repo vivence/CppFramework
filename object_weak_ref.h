@@ -30,21 +30,24 @@ template<typename _T>
 class object_weak_ref final : dis_new {
     static_assert(std::is_base_of<support_weak_ref, _T>::value, "_T must be inherit from support_weak_ref");
 
-    support_weak_ref::_id_type _obj_id;
 	_T* _p;
+    bool* _p_pool_mem_freed;
+    support_weak_ref::_id_type _obj_id;
 
 public:
 	static object_weak_ref null_ref;
 
 private:
     friend class object_factory;
-    explicit object_weak_ref(_T* p)
+    explicit object_weak_ref(_T* p, bool* p_pool_mem_freed = nullptr)
         : _p(p)
+        , _p_pool_mem_freed(p_pool_mem_freed)
         , _obj_id((nullptr != p) ? static_cast<support_weak_ref*>(p)->_instance_id : support_weak_ref::_INVALID_ID)
     {
     }
-    explicit object_weak_ref(const ref<_T>& obj_ref)
-        : _p(const_cast<_T*>(obj_ref.operator->()))
+    explicit object_weak_ref(const ref<_T>& obj_ref, bool* p_pool_mem_freed = nullptr)
+		: _p(const_cast<_T*>(obj_ref.operator->()))
+		, _p_pool_mem_freed(p_pool_mem_freed)
         , _obj_id((nullptr != obj_ref) ? obj_ref->_instance_id : support_weak_ref::_INVALID_ID)
     {
     }
@@ -72,18 +75,21 @@ private:
     }
 
 public:
-    inline bool operator ==(const _T* p) const { return _p == p && (nullptr == _p || _p->_instance_id == _obj_id); }
+    inline bool operator ==(const _T* p) const { return _p == p && (nullptr == p || p->_instance_id == _obj_id); }
     inline bool operator !=(const _T* p) const { return !operator ==(p); }
-    inline bool operator ==(const ref<_T>& rhs) const { return rhs == _p && (nullptr == _p || _p->_instance_id == _obj_id); }
-    inline bool operator !=(const ref<_T>& rhs) const { return !operator ==(rhs); }
+    inline bool operator ==(const ref<_T>& rhs) const { return operator ==(rhs.operator->()); }
+    inline bool operator !=(const ref<_T>& rhs) const { return !operator ==(rhs.operator->()); }
     inline bool operator ==(const object_weak_ref& rhs) const { return rhs._obj_id == _obj_id && rhs._p == _p; }
-    inline bool operator !=(const object_weak_ref & rhs) const { return !operator ==(rhs); }
-    inline bool operator ==(std::nullptr_t p) const { return p == _p || _p->_instance_id != _obj_id; }
+    inline bool operator !=(const object_weak_ref& rhs) const { return !operator ==(rhs); }
+    inline bool operator ==(std::nullptr_t p) const { return p == _p || _pool_mem_freed() || _p->_instance_id != _obj_id; }
     inline bool operator !=(std::nullptr_t p) const { return !operator ==(p); }
     template<typename _TT>
     friend bool operator ==(std::nullptr_t p, const object_weak_ref<_TT>& wp);
     template<typename _TT>
     friend bool operator !=(std::nullptr_t p, const object_weak_ref<_TT>& wp);
+
+private:
+    inline bool _pool_mem_freed() const { return nullptr != _p_pool_mem_freed && *_p_pool_mem_freed; }
 
 private:
     object_weak_ref* operator&() = delete;

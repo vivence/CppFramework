@@ -113,16 +113,24 @@ private: // friend functions
 	}
 
 	template<typename _T>
-	object_weak_ref<_T> get_weak_ref(_T* p_obj)
+	object_weak_ref<_T> get_weak_ref(_T* p)
 	{
 		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
-		return object_weak_ref<_T>(p_obj);
+		if (nullptr == p)
+		{
+			return object_weak_ref<_T>(p);
+		}
+		return object_weak_ref<_T>(p, _mem_pool.get_pool_mem_freed_ptr(cast_utils<_T, object>::cast(p)->_mem));
 	}
 	template<typename _T>
 	object_weak_ref<_T> get_weak_ref(const ref<_T>& obj_ref)
 	{
 		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
-		return object_weak_ref<_T>(obj_ref);
+		if (nullptr == obj_ref)
+		{
+			return object_weak_ref<_T>(obj_ref);
+		}
+		return object_weak_ref<_T>(obj_ref, _mem_pool.get_pool_mem_freed_ptr(cast_utils<_T, object>::cast(obj_ref.operator->())->_mem));
 	}
 
 	template<typename _T>

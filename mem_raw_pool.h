@@ -5,6 +5,7 @@
 #include "core.h"
 #include "noncopyable.h"
 #include <vector>
+#include <map>
 
 CORE_NAMESPACE_BEG
 
@@ -49,6 +50,19 @@ private:
 	{
 		return block_mem_beg <= (intptr_t)p_cell && block_mem_end > (intptr_t)p_cell;
 	}
+
+private:
+	using _block_state_array_type = std::vector<bool*>;
+	using _block_state_map_type = std::map<void*, bool*>;
+	_block_state_array_type _blocks_freed_state;
+	_block_state_map_type _blocks_freed_state_map;
+
+	bool* _get_block_freed_state(void* block);
+	bool _try_set_block_freed_state(void* block, bool state);
+
+public:
+	bool* get_pool_mem_freed_ptr(void* user_mem);
+
 };
 
 CORE_NAMESPACE_END
