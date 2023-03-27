@@ -46,16 +46,6 @@ public:
 #endif // COMPACT_CELL
 	};
 
-	void set_pool_index(size_t i)
-	{
-		// todo: assert(PoolCount > i)
-		head = (head_type)i;
-	}
-	size_t get_pool_index()
-	{
-		return head;
-	}
-
 	void mark_unused()
 	{
 		head = _UnuseMark;

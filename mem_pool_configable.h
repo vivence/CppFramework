@@ -35,7 +35,7 @@ class mem_pool_configable : noncopyable {
 
 	mem_raw_pool* _get_pool(void* user_mem)
 	{
-		auto i = mem_cell::get_cell(user_mem).get_pool_index();
+		auto i = static_cast<size_t>(mem_cell::get_cell(user_mem).head);
 		return mem_cell::PoolCount > i ? _pools[i].get() : nullptr;
 	}
 
@@ -74,7 +74,7 @@ public:
 		auto user_mem = _pools[type_meta::pool_index]->alloc();
 		if (nullptr != user_mem)
 		{
-			mem_cell::get_cell(user_mem).set_pool_index(type_meta::pool_index);
+			mem_cell::get_cell(user_mem).head = static_cast<mem_cell::head_type>(type_meta::pool_index);
 		}
 		return user_mem;
 	}
@@ -120,7 +120,7 @@ void* mem_pool_configable<_CellUnitSize, _BlockMaxSize>::alloc(size_t user_mem_s
 		auto user_mem = _pools[pool_index]->alloc();
 		if (nullptr != user_mem)
 		{
-			mem_cell::get_cell(user_mem).set_pool_index(pool_index);
+			mem_cell::get_cell(user_mem).head = static_cast<mem_cell::head_type>(pool_index);
 		}
 		return user_mem;
 	}
@@ -134,7 +134,7 @@ void* mem_pool_configable<_CellUnitSize, _BlockMaxSize>::alloc(size_t user_mem_s
 template<size_t _CellUnitSize, size_t _BlockMaxSize>
 void* mem_pool_configable<_CellUnitSize, _BlockMaxSize>::realloc(void* user_mem, size_t user_mem_size)
 {
-	auto old_pool_index = mem_cell::get_cell(user_mem).get_pool_index();
+	auto old_pool_index = static_cast<size_t>(mem_cell::get_cell(user_mem).head);
 	auto new_pool_index = _config::calc::pool_index(user_mem_size);
 	if (old_pool_index == new_pool_index)
 	{
