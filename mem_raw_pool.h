@@ -22,13 +22,6 @@ class mem_raw_pool : noncopyable {
 	size_t _cell_count;
 
 public:
-	typedef void* (*fp_mem_alloc_type)(size_t size);
-	typedef void (*fp_mem_free_type)(void* mem);
-
-	static fp_mem_alloc_type fp_mem_alloc;
-	static fp_mem_free_type fp_mem_free;
-
-public:
 	mem_raw_pool(size_t c_size, size_t c_count)
 		: _cell_size(c_size)
 		, _cell_count(c_count)
