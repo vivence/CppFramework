@@ -2,10 +2,6 @@
 #include "object_factory.h"
 #include <vector>
 
-#if REF_SAFE_CHECK
-#include <iostream> // ¡Ÿ ± µœ÷
-#endif // REF_SAFE_CHECK
-
 CORE_NAMESPACE_BEG
 
 class temp_ref_mem_pool : noncopyable {

@@ -3,6 +3,17 @@
 
 CORE_NAMESPACE_BEG
 
+const char* const console_text::RESET   = "\033[0m";
+const char* const console_text::BOLD    = "\033[1m";
+const char* const console_text::BLACK   = "\033[30m";
+const char* const console_text::RED     = "\033[31m";
+const char* const console_text::GREEN   = "\033[32m";
+const char* const console_text::YELLOW  = "\033[33m";
+const char* const console_text::BLUE    = "\033[34m";
+const char* const console_text::MAGENTA = "\033[35m";
+const char* const console_text::CYAN    = "\033[36m";
+const char* const console_text::WHITE   = "\033[37m";
+
 size_t string_format_utils::format_size(std::stringstream& ss, size_t size, size_t formatSize, const char* suffix)
 {
     if (formatSize <= size)

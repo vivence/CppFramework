@@ -8,6 +8,19 @@
 
 CORE_NAMESPACE_BEG
 
+struct console_text {
+	static const char* const RESET;
+	static const char* const BOLD;
+	static const char* const BLACK;
+	static const char* const RED;
+	static const char* const GREEN;
+	static const char* const YELLOW;
+	static const char* const BLUE;
+	static const char* const MAGENTA;
+	static const char* const CYAN;
+	static const char* const WHITE;
+};
+
 struct string_format_utils {
 	static size_t format_size(std::stringstream& ss, size_t size, size_t formatSize, const char* suffix);
 	static std::string format_size(size_t size);

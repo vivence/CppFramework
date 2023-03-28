@@ -56,16 +56,20 @@ bool test_mem_pool::test_alloc()
 	auto raw_pool_count = sizeof(raw_pools) / sizeof(raw_pools[0]);
 	if (mem_cell::PoolCount != raw_pool_count)
 	{
+		_out << console_text::RED;
 		_out << "test_alloc failed: raw count is invalid, " << raw_pool_count << " != " << mem_cell::PoolCount << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
-	_out << "test_alloc check pool count: OK" << std::endl;
+	_out << "test_alloc check pool count: " << console_text::GREEN << "OK" << console_text::RESET << std::endl;
 
 	// check block increase
 	auto pool_index = mem_pool::info_for_type<int>::pool_index;
 	if (nullptr == raw_pools[pool_index])
 	{
+		_out << console_text::RED;
 		_out << "test_alloc failed: raw pool[" << pool_index << "] is nullptr" << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 	auto& raw_pool = *raw_pools[pool_index];
@@ -73,7 +77,9 @@ bool test_mem_pool::test_alloc()
 	auto block_count = raw_pool._blocks.size();
 	if (0 != block_count)
 	{
+		_out << console_text::RED;
 		_out << "test_alloc failed: block_count is not 0, it is " << block_count << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 	for (size_t i = 0; i < cell_count_in_block; ++i)
@@ -83,17 +89,21 @@ bool test_mem_pool::test_alloc()
 	block_count = raw_pool._blocks.size();
 	if (1 != block_count)
 	{
+		_out << console_text::RED;
 		_out << "test_alloc failed: block_count is not 1, it is " << block_count << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 	auto_free.Add(pool.alloc<int>());
 	block_count = raw_pool._blocks.size();
 	if (2 != block_count)
 	{
+		_out << console_text::RED;
 		_out << "test_alloc failed: block_count is not 2, it is " << block_count << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
-	_out << "test_alloc check block increase: OK" << std::endl;
+	_out << "test_alloc check block increase: " << console_text::GREEN << "OK" << console_text::RESET << std::endl;
 	
 	return true;
 }
@@ -108,10 +118,12 @@ bool test_mem_pool::test_realloc()
 	auto raw_pool_count = sizeof(raw_pools) / sizeof(raw_pools[0]);
 	if (mem_cell::PoolCount != raw_pool_count)
 	{
+		_out << console_text::RED;
 		_out << "test_realloc failed: raw count is invalid, " << raw_pool_count << " != " << mem_cell::PoolCount << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
-	_out << "test_realloc check pool count: OK" << std::endl;
+	_out << "test_realloc check pool count: " << console_text::GREEN << "OK" << console_text::RESET << std::endl;
 
 	// check realloc
 	auto mem = pool.alloc(1);
@@ -122,7 +134,9 @@ bool test_mem_pool::test_realloc()
 		auto new_mem = pool.realloc(mem, i);
 		if (new_mem != mem)
 		{
+			_out << console_text::RED;
 			_out << "test_realloc failed: new_mem != mem, user_mem_size = " << i << std::endl;
+			_out << console_text::RESET;
 			auto_free.Add(new_mem);
 			return false;
 		}
@@ -131,12 +145,14 @@ bool test_mem_pool::test_realloc()
 	auto new_mem = pool.realloc(mem, new_size);
 	if (new_mem == mem)
 	{
+		_out << console_text::RED;
 		_out << "test_realloc failed: new_mem == mem, user_mem_size = " << new_size << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 	auto_free.Add(new_mem);
 
-	_out << "test_realloc: OK" << std::endl;
+	_out << "test_realloc: " << console_text::GREEN << "OK" << console_text::RESET << std::endl;
 
 	return true;
 }
@@ -154,21 +170,27 @@ bool test_mem_pool::test_free()
 	auto free_cell_count = _get_free_cell_count(raw_pool);
 	if (0 != free_cell_count)
 	{
+		_out << console_text::RED;
 		_out << "test_free failed: free_cell_count is not " << 0 << ", it is " << free_cell_count << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 	auto_free.Add(pool.alloc<int>());
 	free_cell_count = _get_free_cell_count(raw_pool);
 	if (cell_count_in_block - 1 != free_cell_count)
 	{
+		_out << console_text::RED;
 		_out << "test_free failed: free_cell_count is not " << cell_count_in_block - 1 << ", it is " << free_cell_count << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 	auto_free.Clear();
 	free_cell_count = _get_free_cell_count(raw_pool);
 	if (cell_count_in_block != free_cell_count)
 	{
+		_out << console_text::RED;
 		_out << "test_free failed: free_cell_count is not " << cell_count_in_block << ", it is " << free_cell_count << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 	for (size_t i = 0; i < free_cell_count; ++i)
@@ -178,25 +200,31 @@ bool test_mem_pool::test_free()
 	free_cell_count = _get_free_cell_count(raw_pool);
 	if (0 != free_cell_count)
 	{
+		_out << console_text::RED;
 		_out << "test_free failed: free_cell_count is not " << 0 << ", it is " << free_cell_count << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 	auto_free.Add(pool.alloc<int>());
 	free_cell_count = _get_free_cell_count(raw_pool);
 	if (cell_count_in_block - 1 != free_cell_count)
 	{
+		_out << console_text::RED;
 		_out << "test_free failed: free_cell_count is not " << cell_count_in_block - 1 << ", it is " << free_cell_count << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 	auto_free.Clear();
 	free_cell_count = _get_free_cell_count(raw_pool);
 	if (cell_count_in_block * 2 != free_cell_count)
 	{
+		_out << console_text::RED;
 		_out << "test_free failed: free_cell_count is not " << cell_count_in_block * 2 << ", it is " << free_cell_count << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 
-	_out << "test_free check free cell count: OK" << std::endl;
+	_out << "test_free check free cell count: " << console_text::GREEN << "OK" << console_text::RESET << std::endl;
 	return true;
 }
 
@@ -214,7 +242,9 @@ bool test_mem_pool::test_cleanup_step()
 	auto block_count = raw_pool._blocks.size();
 	if (0 != block_count)
 	{
+		_out << console_text::RED;
 		_out << "test_cleanup_step failed: block_count is not 0, it is " << block_count << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 
@@ -227,18 +257,24 @@ bool test_mem_pool::test_cleanup_step()
 	block_count = raw_pool._blocks.size();
 	if (2 != block_count)
 	{
+		_out << console_text::RED;
 		_out << "test_alloc failed: block_count is not 2, it is " << block_count << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 	auto p_mem_freed = pool.get_pool_mem_freed_ptr(mem);
 	if (nullptr == p_mem_freed)
 	{
+		_out << console_text::RED;
 		_out << "test_cleanup_step failed: p_mem_freed is nullptr" << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 	if (*p_mem_freed)
 	{
+		_out << console_text::RED;
 		_out << "test_cleanup_step failed: *p_mem_freed is true " << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 	auto_free.Remove(mem);
@@ -247,12 +283,16 @@ bool test_mem_pool::test_cleanup_step()
 	block_count = raw_pool._blocks.size();
 	if (2 != block_count)
 	{
+		_out << console_text::RED;
 		_out << "test_cleanup_step failed: block_count is not 2, it is " << block_count << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 	if (*p_mem_freed)
 	{
+		_out << console_text::RED;
 		_out << "test_cleanup_step failed: *p_mem_freed is true " << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 
@@ -260,21 +300,27 @@ bool test_mem_pool::test_cleanup_step()
 	block_count = raw_pool._blocks.size();
 	if (1 != block_count)
 	{
+		_out << console_text::RED;
 		_out << "test_cleanup_step failed: block_count is not 1, it is " << block_count << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 	if (!*p_mem_freed)
 	{
+		_out << console_text::RED;
 		_out << "test_cleanup_step failed: *p_mem_freed is false " << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
-	_out << "test_cleanup_step check block count: OK" << std::endl;
+	_out << "test_cleanup_step check block count: " << console_text::GREEN << "OK" << console_text::RESET << std::endl;
 
 	// check free cell count
 	auto free_cell_count = _get_free_cell_count(raw_pool);
 	if (0 != free_cell_count)
 	{
+		_out << console_text::RED;
 		_out << "test_cleanup_step failed: free_cell_count is not " << 0 << ", it is " << free_cell_count << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 
@@ -282,11 +328,13 @@ bool test_mem_pool::test_cleanup_step()
 	free_cell_count = _get_free_cell_count(raw_pool);
 	if (cell_count_in_block != free_cell_count)
 	{
+		_out << console_text::RED;
 		_out << "test_cleanup_step failed: free_cell_count is not " << cell_count_in_block << ", it is " << free_cell_count << std::endl;
+		_out << console_text::RESET;
 		return false;
 	}
 
-	_out << "test_cleanup_step check free cell count: OK" << std::endl;
+	_out << "test_cleanup_step check free cell count: " << console_text::GREEN << "OK" << console_text::RESET << std::endl;
 	return true;
 }
 
