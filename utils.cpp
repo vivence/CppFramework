@@ -5,14 +5,24 @@ CORE_NAMESPACE_BEG
 
 const char* const console_text::RESET   = "\033[0m";
 const char* const console_text::BOLD    = "\033[1m";
+
 const char* const console_text::BLACK   = "\033[30m";
 const char* const console_text::RED     = "\033[31m";
 const char* const console_text::GREEN   = "\033[32m";
 const char* const console_text::YELLOW  = "\033[33m";
 const char* const console_text::BLUE    = "\033[34m";
-const char* const console_text::MAGENTA = "\033[35m";
+const char* const console_text::PURPLE  = "\033[35m";
 const char* const console_text::CYAN    = "\033[36m";
 const char* const console_text::WHITE   = "\033[37m";
+
+const char* const console_text::BKG_BLACK  = "\033[40m";
+const char* const console_text::BKG_RED    = "\033[41m";
+const char* const console_text::BKG_GREEN  = "\033[42m";
+const char* const console_text::BKG_YELLOW = "\033[43m";
+const char* const console_text::BKG_BLUE   = "\033[44m";
+const char* const console_text::BKG_PURPLE = "\033[45m";
+const char* const console_text::BKG_CYAN   = "\033[46m";
+const char* const console_text::BKG_WHITE  = "\033[47m";
 
 size_t string_format_utils::format_size(std::stringstream& ss, size_t size, size_t formatSize, const char* suffix)
 {

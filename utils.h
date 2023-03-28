@@ -11,14 +11,24 @@ CORE_NAMESPACE_BEG
 struct console_text {
 	static const char* const RESET;
 	static const char* const BOLD;
+
 	static const char* const BLACK;
 	static const char* const RED;
 	static const char* const GREEN;
 	static const char* const YELLOW;
 	static const char* const BLUE;
-	static const char* const MAGENTA;
+	static const char* const PURPLE;
 	static const char* const CYAN;
 	static const char* const WHITE;
+
+	static const char* const BKG_BLACK;
+	static const char* const BKG_RED;
+	static const char* const BKG_GREEN;
+	static const char* const BKG_YELLOW;
+	static const char* const BKG_BLUE;
+	static const char* const BKG_PURPLE;
+	static const char* const BKG_CYAN;
+	static const char* const BKG_WHITE;
 };
 
 struct string_format_utils {

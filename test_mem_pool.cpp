@@ -1,8 +1,12 @@
 #include "test_mem_pool.h"
 #include "mem_pool.h"
+#ifdef TEST_GC
+#include "gc/gc.h"
+#endif
 #include <vector>
 #include <algorithm>
 #include <ctime>
+#include <iomanip>
 
 /*
 * mem_poolµ•‘™≤‚ ‘”√¿˝
@@ -344,16 +348,27 @@ void _test_new_performance(size_t test_count)
 	for (size_t i = 0; i < test_count; i++)
 	{
 		auto p = new int();
-		delete p;
+		//delete p;
 	}
 }
+
+#ifdef TEST_GC
+void _test_gc_performance(size_t test_count)
+{
+	for (size_t i = 0; i < test_count; i++)
+	{
+		auto p = new (GC_malloc(sizeof(int))) int();
+		//GC_free(p);
+	}
+}
+#endif // TEST_GC
 
 void _test_template_alloc_performance(mem_pool& mp, size_t test_count)
 {
 	for (size_t i = 0; i < test_count; i++)
 	{
 		auto p = mp.alloc<int>();
-		mp.free(p);
+		//mp.free(p);
 	}
 }
 
@@ -362,12 +377,16 @@ void _test_alloc_performance(mem_pool& mp, size_t test_count)
 	for (size_t i = 0; i < test_count; i++)
 	{
 		auto p = mp.alloc(sizeof(int));
-		mp.free(p);
+		//mp.free(p);
 	}
 }
 
 void test_mem_pool::test_performance()
 {
+#ifdef TEST_GC
+	GC_init();
+#endif // TEST_GC
+
 	clock_t start, end;
 	size_t test_count = 10000 * 100;
 	_out << "test_count: " << string_format_utils::format_count(test_count) << std::endl;
@@ -381,20 +400,40 @@ void test_mem_pool::test_performance()
 	auto spent_0 = end - start;
 	_out << "new spent clocks: " << spent_0 << std::endl;
 
+#ifdef TEST_GC
+	start = clock();
+	_test_gc_performance(test_count);
+	end = clock();
+	auto spent_1 = end - start;
+	_out << "gc spent clocks: " << spent_1 << std::endl;
+#endif // TEST_GC
+
 	start = clock();
 	_test_template_alloc_performance(mp, test_count);
 	end = clock();
-	auto spent_1 = end - start;
-	_out << "template alloc spent clocks: " << spent_1 << std::endl;
+	auto spent_2 = end - start;
+	_out << "template alloc spent clocks: " << spent_2 << std::endl;
 
 	start = clock();
 	_test_alloc_performance(mp, test_count);
 	end = clock();
-	auto spent_2 = end - start;
-	_out << "alloc spent clocks: " << spent_2 << std::endl;
+	auto spent_3 = end - start;
+	_out << "alloc spent clocks: " << spent_3 << std::endl;
 
-	_out << "template alloc diff to new = " << spent_1 - spent_0 << std::endl;
-	_out << "template alloc diff to alloc = " << spent_1 - spent_2 << std::endl;
+	_out << "template alloc diff to new = " << spent_2 - spent_0;
+	_out << ", spent percent = " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << spent_2 * 100.0 / spent_0 << "%" << std::endl;
+	
+#ifdef TEST_GC
+	_out << "template alloc diff to gc = " << spent_2 - spent_1;
+	_out << ", spent percent = " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << spent_2 * 100.0 / spent_1 << "%" << std::endl;
+#endif // TEST_GC
+
+	_out << "template alloc diff to alloc = " << spent_2 - spent_3;
+	_out << ", spent percent = " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << spent_2 * 100.0 / spent_3 << "%" << std::endl;
+
+#ifdef TEST_GC
+	GC_deinit();
+#endif // TEST_GC
 }
 
 size_t test_mem_pool::_get_free_cell_count(const mem_raw_pool& raw_pool)
