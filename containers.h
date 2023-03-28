@@ -17,7 +17,8 @@
 #include <map>
 #include <unordered_set>
 #include <unordered_map>
-#include <string.h>
+#include <string>
+#include <sstream>
 
 CORE_NAMESPACE_BEG
 
@@ -95,7 +96,7 @@ bool operator==(const allocator<_T>&, const allocator<_P>&) noexcept
     return true;
 }
 template <class _T, class _P>
-bool operator!=(const allocator<_T>&, const std::allocator<_P>&) noexcept 
+bool operator!=(const allocator<_T>&, const allocator<_P>&) noexcept 
 {
     return false;
 }
@@ -104,6 +105,16 @@ bool operator!=(const allocator<_T>&, const std::allocator<_P>&) noexcept
 
 using string = std::basic_string<char, std::char_traits<char>, allocator<char>>;
 using wstring = std::basic_string<wchar_t, std::char_traits<wchar_t>, allocator<wchar_t>>;
+
+using stringbuf = std::basic_stringbuf<char, std::char_traits<char>, allocator<char>>;
+using istringstream = std::basic_istringstream<char, std::char_traits<char>, allocator<char>>;
+using ostringstream = std::basic_ostringstream<char, std::char_traits<char>, allocator<char>>;
+using stringstream = std::basic_stringstream<char, std::char_traits<char>, allocator<char>>;
+
+using wstringbuf = std::basic_stringbuf<wchar_t, std::char_traits<wchar_t>, allocator<wchar_t>>;
+using wistringstream = std::basic_istringstream<wchar_t, std::char_traits<wchar_t>, allocator<wchar_t>>;
+using wostringstream = std::basic_ostringstream<wchar_t, std::char_traits<wchar_t>, allocator<wchar_t>>;
+using wstringstream = std::basic_stringstream<wchar_t, std::char_traits<wchar_t>, allocator<wchar_t>>;
 
 template<typename _T>
 using vector = std::vector<_T, allocator<_T>>;
@@ -124,13 +135,13 @@ template<typename _T>
 using set = std::set<_T, std::less<_T>, allocator<_T>>;
 
 template<typename _K, typename _V>
-using map = std::map<_K, _V, std::less<_K>, allocator<_V>>;
+using map = std::map<_K, _V, std::less<_K>, allocator<std::pair<const _K, _V>>>;
 
 template<typename _T>
 using unordered_set = std::unordered_set<_T, std::hash<_T>, std::equal_to<_T>, allocator<_T>>;
 
 template<typename _K, typename _V>
-using unordered_map = std::unordered_map<_K, _V, std::hash<_K>, std::equal_to<_K>, allocator<_V>>;
+using unordered_map = std::unordered_map<_K, _V, std::hash<_K>, std::equal_to<_K>, allocator<std::pair<const _K, _V>>>;
 
 CORE_NAMESPACE_END
 
