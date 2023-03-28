@@ -2,6 +2,7 @@
 #include "mem_pool.h"
 #include <vector>
 #include <algorithm>
+#include <ctime>
 
 /*
 * mem_poolµ¥Ôª²âÊÔÓÃÀı
@@ -387,7 +388,7 @@ void test_mem_pool::test_performance()
 	_out << "template alloc spent clocks: " << spent_1 << std::endl;
 
 	start = clock();
-	_test_template_alloc_performance(mp, test_count);
+	_test_alloc_performance(mp, test_count);
 	end = clock();
 	auto spent_2 = end - start;
 	_out << "alloc spent clocks: " << spent_2 << std::endl;
