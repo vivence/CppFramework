@@ -10,6 +10,7 @@ CORE_NAMESPACE_BEG
 
 template<size_t _CellUnitSize, size_t _BlockMaxSize>
 struct mem_pool_config {
+	static_assert(sizeof(mem_cell) <= _CellUnitSize, "_CellUnitSize must be bigger than sizeof(mem_cell)");
 	enum {
 		CellUnitSize = _CellUnitSize,
 		BlockMaxSize = _BlockMaxSize
@@ -27,8 +28,9 @@ struct mem_pool_config {
 		// all indexes are divided according to multiples of CellUnitSize
 		constexpr static size_t pool_index(size_t user_mem_size)
 		{
-			auto raw_size = cell_raw_size(user_mem_size);
-			return raw_size / _CellUnitSize - (0 < (raw_size % _CellUnitSize) ? 0 : 1);
+			static_assert(1 == mem_cell::UserMemOffset, "nmem_cell::UserMemOffset must be 1");
+			//auto raw_size = cell_raw_size(user_mem_size);
+			return user_mem_size / _CellUnitSize;// -(0 < (raw_size % _CellUnitSize) ? 0 : 1);
 		}
 
 		// cell size is the min multiples of CellUnitSize

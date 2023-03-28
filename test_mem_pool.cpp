@@ -347,8 +347,8 @@ void _test_new_performance(size_t test_count)
 {
 	for (size_t i = 0; i < test_count; i++)
 	{
-		auto p = new int();
-		//delete p;
+		auto p = ::operator new(sizeof(int));
+		//::operator delete(p);
 	}
 }
 
@@ -357,7 +357,7 @@ void _test_gc_performance(size_t test_count)
 {
 	for (size_t i = 0; i < test_count; i++)
 	{
-		auto p = new (GC_malloc(sizeof(int))) int();
+		auto p = GC_malloc(sizeof(int));
 		//GC_free(p);
 	}
 }
