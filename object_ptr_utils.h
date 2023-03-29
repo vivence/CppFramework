@@ -48,7 +48,7 @@ using mptr_type = T*;
 #endif
 
 struct object_ptr_utils {
-	template<typename _T, typename ..._Args, ENABLE_IF(is_gc_disabled<_T>::value)>
+	template<typename _T, typename ..._Args, enable_if_int<is_gc_disabled<_T>::value> = 0>
 	inline static mptr_type<_T> create(_Args&&... args)
 	{
 #if EnableMPtr
@@ -58,7 +58,7 @@ struct object_ptr_utils {
 #endif
 	}
 
-	template<typename _P, typename ..._Args, ENABLE_IF(is_gc_disabled_ptr<_P>::value)>
+	template<typename _P, typename ..._Args, enable_if_int<is_gc_disabled_ptr<_P>::value> = 0>
 	inline static _P create_by_ptr_type(_Args&&... args)
 	{
 #if EnableMPtr
@@ -68,7 +68,7 @@ struct object_ptr_utils {
 #endif
 	}
 
-	template<typename _P, ENABLE_IF(is_gc_disabled_ptr<_P>::value)>
+	template<typename _P, enable_if_int<is_gc_disabled_ptr<_P>::value> = 0>
 	inline static bool destroy(_P ptr)
 	{
 		

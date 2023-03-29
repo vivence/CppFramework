@@ -17,7 +17,7 @@ class object : noncopyable, dis_new {
 	//----------------------------------------<
 
     friend class object_factory;
-    void* _mem = nullptr;
+    void* _mem = nullptr; // used by object_factory
 
 protected:
     object() {};

@@ -143,11 +143,11 @@ public:
 	}
 
 public: // implicit constructors 
-	template<typename _D, ENABLE_IF_CONVERTIBLE(_D*, _T*)>
+	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
 	object_monitor_ptr(object_monitor_ptr<_D>& p) noexcept : object_monitor_ptr(static_cast<_T*>(p.operator->())) {}
-	template<typename _D, ENABLE_IF_CONVERTIBLE(_D*, _T*)>
+	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
 	object_monitor_ptr(const object_monitor_ptr<_D>& p) noexcept : object_monitor_ptr(static_cast<_T*>(const_cast<_D*>(p.operator->()))) {}
-	template<typename _D, ENABLE_IF_CONVERTIBLE(_D*, _T*)>
+	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
 	object_monitor_ptr(object_monitor_ptr<_D>&& p) noexcept 
 		: _p(static_cast<_T*>(p.operator->())) 
 	{
@@ -167,9 +167,9 @@ private: // private assign
 	}
 	object_monitor_ptr& operator =(const _T* p) noexcept { *this = const_cast<_T*>(p); return *this; }
 
-	template<typename _D, ENABLE_IF_CONVERTIBLE(_D*, _T*)>
+	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
 	object_monitor_ptr& operator =(_D* p) noexcept { *this = static_cast<_T*>(p); return *this; }
-	template<typename _D, ENABLE_IF_CONVERTIBLE(_D*, _T*)>
+	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
 	object_monitor_ptr& operator =(const _D* p) noexcept { *this = const_cast<_D*>(p); return *this; }
 
 public: // copy and assign
@@ -187,9 +187,9 @@ public: // copy and assign
 		return *this;
 	}
 
-	template<typename _D, ENABLE_IF_CONVERTIBLE(_D*, _T*)>
+	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
 	object_monitor_ptr& operator =(object_monitor_ptr<_D>& p) noexcept { *this = p.operator->(); return *this; }
-	template<typename _D, ENABLE_IF_CONVERTIBLE(_D*, _T*)>
+	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
 	object_monitor_ptr& operator =(const object_monitor_ptr<_D>& p) noexcept { *this = p.operator->(); return *this; }
 
 public: // move and assign
@@ -201,7 +201,7 @@ public: // move and assign
 		return *this;
 	}
 
-	template<typename _D, ENABLE_IF_CONVERTIBLE(_D*, _T*)>
+	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
 	object_monitor_ptr& operator =(object_monitor_ptr<_D>&& other)
 	{ 
 		if (other == *this) { return *this; }
@@ -240,9 +240,9 @@ public: // comparators as right hand
 	template<typename _TT>
 	friend bool operator !=(nullptr_t, const object_monitor_ptr<_TT>& wp);
 
-	template<typename _DD, typename _TT, ENABLE_IF_CONVERTIBLE_DEF(_DD*, _TT*)>
+	template<typename _DD, typename _TT, enable_if_convertible_int<_DD*, _TT*>>
 	friend bool operator ==(const _DD* p, const object_monitor_ptr<_TT>& wp);
-	template<typename _DD, typename _TT, ENABLE_IF_CONVERTIBLE_DEF(_DD*, _TT*)>
+	template<typename _DD, typename _TT, enable_if_convertible_int<_DD*, _TT*>>
 	friend bool operator !=(const _DD* p, const object_monitor_ptr<_TT>& wp);
 };
 
@@ -254,9 +254,9 @@ inline bool operator ==(nullptr_t, const object_monitor_ptr<_TT>& wp) { return n
 template<typename _TT>
 inline bool operator !=(nullptr_t, const object_monitor_ptr<_TT>& wp) { return nullptr != wp._p; }
 
-template<typename _DD, typename _TT, ENABLE_IF_CONVERTIBLE(_DD*, _TT*)>
+template<typename _DD, typename _TT, enable_if_convertible_int<_DD*, _TT*> = 0>
 inline bool operator ==(const _DD* p, const object_monitor_ptr<_TT>& wp) { return p == wp._p; }
-template<typename _DD, typename _TT, ENABLE_IF_CONVERTIBLE(_DD*, _TT*)>
+template<typename _DD, typename _TT, enable_if_convertible_int<_DD*, _TT*> = 0>
 inline bool operator !=(const _DD* p, const object_monitor_ptr<_TT>& wp) { return p != wp._p; }
 
 CORE_NAMESPACE_END

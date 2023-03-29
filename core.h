@@ -20,6 +20,7 @@ const int BUG_TAG_MEM_POOL = 2;
 const int BUG_TAG_TEMP_REF = 10;
 const int BUG_TAG_WEAK_REF = 11;
 const int BUG_TAG_SHARED_REF = 12;
+const int BUG_TAG_OBJECT_FACTORY = 13;
 #endif // REF_SAFE_CHECK
 
 const int BUG_TAG_MONITOR_PTR = 21;

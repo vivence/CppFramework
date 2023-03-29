@@ -2,6 +2,11 @@
 #include "object_factory.h"
 #include <vector>
 
+#if ENABLE_REF_SAFE_CHECK
+#include "environment.h"
+#include "bug_reporter.h"
+#endif // REF_SAFE_CHECK
+
 CORE_NAMESPACE_BEG
 
 class temp_ref_mem_pool : noncopyable {
@@ -120,6 +125,27 @@ void object_factory::on_frame_end()
 #endif // REF_SAFE_CHECK
 }
 
+#if ENABLE_REF_SAFE_CHECK
+void object_factory::extern_retain(object* p_obj)
+{
+	if (nullptr == p_obj)
+	{
+		environment::get_cur_bug_reporter().report(BUG_TAG_OBJECT_FACTORY, "extern_retain nullptr");
+		return;
+	}
+	_extern_retained_objs.insert(p_obj);
+}
+void object_factory::extern_release(object* p_obj)
+{
+	if (nullptr == p_obj)
+	{
+		environment::get_cur_bug_reporter().report(BUG_TAG_OBJECT_FACTORY, "extern_release nullptr");
+		return;
+	}
+	_extern_retained_objs.erase(p_obj);
+}
+#endif // ENABLE_REF_SAFE_CHECK
+
 void object_factory::_handle_delay_destroy()
 {
 	static _object_array_type temp;
@@ -154,6 +180,10 @@ void object_factory::_delete_obj_immediately(object* p_obj)
 {
 #if ENABLE_REF_SAFE_CHECK
 	object_temp_ref_destroyed_pointers::add_destroyed_pointer(p_obj);
+	if (_extern_retained_objs.end() != _extern_retained_objs.find(p_obj))
+	{
+		environment::get_cur_bug_reporter().report(BUG_TAG_OBJECT_FACTORY, "delete_obj still be retained by extern environment");
+	}
 #endif // REF_SAFE_CHECK
 	auto user_mem = p_obj->_mem;
 	p_obj->~object();

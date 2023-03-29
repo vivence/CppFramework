@@ -4,6 +4,28 @@
 
 #include <type_traits>
 
+CORE_NAMESPACE_BEG
+
+template<bool _Test>
+using enable_if_int = std::enable_if_t<_Test, int>;
+
+template<typename _T>
+using enable_if_is_class_int = enable_if_int<std::is_class<_T>::value>;
+
+template<typename _T, typename _P>
+using enable_if_convertible_int = enable_if_int<std::is_convertible<_T, _P>::value>;
+
+template<typename _T, typename _P>
+using enable_if_not_convertible_int = enable_if_int<!std::is_convertible<_T, _P>::value>;
+
+template<typename _T>
+using enable_if_is_pointer_int = enable_if_int<std::is_pointer<_T>::value>;
+
+template<typename _T>
+using enable_if_is_not_pointer_int = enable_if_int<!std::is_pointer<_T>::value>;
+
+CORE_NAMESPACE_END
+
 #define ENABLE_IF_DEF(_V) typename std::enable_if<_V>::type*
 #define ENABLE_IF(_V) ENABLE_IF_DEF(_V) = nullptr
 

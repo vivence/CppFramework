@@ -16,6 +16,9 @@
 #include <memory>
 #include <utility>
 #include <initializer_list>
+#if ENABLE_REF_SAFE_CHECK
+#include <set>
+#endif // ENABLE_REF_SAFE_CHECK
 
 CORE_NAMESPACE_BEG
 
@@ -49,11 +52,25 @@ public:
 	void on_frame_end();
 	void cleanup_mem_step() { _mem_pool.cleanup_step(); }
 
+
+#if ENABLE_REF_SAFE_CHECK
+private:
+	using _object_set_type = std::set<object*>;
+	_object_set_type _extern_retained_objs;
+public:
+	void extern_retain(object* p_obj);
+	void extern_release(object* p_obj);
+#else
+public:
+	inline void extern_retain(object*) {}
+	inline void extern_release(object*) {}
+#endif // ENABLE_REF_SAFE_CHECK
+
 private: // private functions
 	void _handle_delay_destroy();
 	void* _alloc_temp_ref_mem();
 	void _recyle_temp_refs();
-	template<typename _T, ENABLE_IF_CONVERTIBLE(_T, support_weak_ref)>
+	template<typename _T, enable_if_convertible_int<_T, support_weak_ref> = 0>
 	void _init_obj(_T* p, void* user_mem)
 	{
 		auto p_weak_obj = static_cast<support_weak_ref*>(p);
@@ -62,7 +79,7 @@ private: // private functions
 		auto p_obj = static_cast<object*>(p);
 		p_obj->_mem = user_mem;
 	}
-	template<typename _T, ENABLE_IF_NOT_CONVERTIBLE(_T, support_weak_ref)>
+	template<typename _T, enable_if_not_convertible_int<_T, support_weak_ref> = 0>
 	void _init_obj(_T* p, void* user_mem)
 	{
 		auto p_obj = static_cast<object*>(p);
