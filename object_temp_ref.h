@@ -6,7 +6,7 @@
 #include "ref.h"
 #include <type_traits>
 
-#if REF_SAFE_CHECK
+#if ENABLE_REF_SAFE_CHECK
 #include "environment.h"
 #include "bug_reporter.h"
 #include <set>
@@ -14,7 +14,7 @@
 
 CORE_NAMESPACE_BEG
 
-#if REF_SAFE_CHECK
+#if ENABLE_REF_SAFE_CHECK
 class object;
 class object_temp_ref_destroyed_pointers {
 	object_temp_ref_destroyed_pointers() = delete;
@@ -59,7 +59,7 @@ private:
 	explicit object_temp_ref(_T* p) : ref<_T>(p) {}
 	explicit object_temp_ref(const ref<_T>& obj_ref) : ref<_T>(obj_ref) {}
 
-#if REF_SAFE_CHECK
+#if ENABLE_REF_SAFE_CHECK
 public:
 	const _T* operator->() const override 
 	{ 

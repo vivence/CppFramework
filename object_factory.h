@@ -112,6 +112,7 @@ private: // friend functions
 		return true;
 	}
 
+#if ENABLE_MEM_POOL_CLEANUP
 	template<typename _T>
 	object_weak_ref<_T> get_weak_ref(_T* p)
 	{
@@ -132,6 +133,20 @@ private: // friend functions
 		}
 		return object_weak_ref<_T>(obj_ref, _mem_pool.get_pool_mem_freed_ptr(cast_utils<_T, object>::cast(obj_ref.operator->())->_mem));
 	}
+#else
+	template<typename _T>
+	object_weak_ref<_T> get_weak_ref(_T* p)
+	{
+		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
+		return object_weak_ref<_T>(p);
+	}
+	template<typename _T>
+	object_weak_ref<_T> get_weak_ref(const ref<_T>& obj_ref)
+	{
+		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
+		return object_weak_ref<_T>(obj_ref);
+	}
+#endif // ENABLE_MEM_POOL_CLEANUP
 
 	template<typename _T>
 	object_temp_ref<_T>& get_temp_ref(_T* p_obj)

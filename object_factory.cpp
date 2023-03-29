@@ -115,7 +115,7 @@ void object_factory::on_frame_end()
 	_handle_delay_destroy();
 	_recyle_temp_refs();
 
-#if REF_SAFE_CHECK
+#if ENABLE_REF_SAFE_CHECK
 	object_temp_ref_destroyed_pointers::clear_destroyed_pointers();
 #endif // REF_SAFE_CHECK
 }
@@ -152,7 +152,7 @@ void object_factory::_delete_obj(object* p_obj)
 
 void object_factory::_delete_obj_immediately(object* p_obj)
 {
-#if REF_SAFE_CHECK
+#if ENABLE_REF_SAFE_CHECK
 	object_temp_ref_destroyed_pointers::add_destroyed_pointer(p_obj);
 #endif // REF_SAFE_CHECK
 	auto user_mem = p_obj->_mem;

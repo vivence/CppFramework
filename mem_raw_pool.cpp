@@ -37,12 +37,14 @@ mem_raw_pool::~mem_raw_pool()
 	_cell_size = 0;
 	_cell_count = 0;
 
+#if ENABLE_MEM_POOL_CLEANUP
 	for (auto p_state : _blocks_freed_state)
 	{
 		_delete_block_freed_state(p_state);
 	}
 	_blocks_freed_state.clear();
 	_blocks_freed_state_map.clear();
+#endif // ENABLE_MEM_POOL_CLEANUP
 }
 
 void* mem_raw_pool::alloc()
@@ -64,6 +66,8 @@ bool mem_raw_pool::free(void* user_mem)
 	return true;
 }
 
+
+#if ENABLE_MEM_POOL_CLEANUP
 /// <summary>
 /// 如果此函数耗时过高，请参看<see cref="_block_is_free"/>和<see cref="_pop_block_cells_from_free_link"/>的优化注释
 /// </summary>
@@ -81,14 +85,17 @@ size_t mem_raw_pool::cleanup_free_blocks()
 			s_fp_mem_free(block);
 			// 3.
 			_blocks.pop_back();
+#if ENABLE_MEM_POOL_CLEANUP
 			// 4.
 			_try_set_block_freed_state(block, true);
+#endif
 			// 5.
 			++cleanup_count;
 		}
 	}
 	return cleanup_count;
 }
+#endif // ENABLE_MEM_POOL_CLEANUP
 
 void mem_raw_pool::_push_cell(mem_cell& c)
 {
@@ -199,6 +206,7 @@ void mem_raw_pool::_pop_block_cells_from_free_link(void* block)
 	}
 }
 
+#if ENABLE_MEM_POOL_CLEANUP
 bool* mem_raw_pool::_get_block_freed_state(void* block)
 {
 	auto iter = _blocks_freed_state_map.find(block);
@@ -238,5 +246,6 @@ bool* mem_raw_pool::get_pool_mem_freed_ptr(void* user_mem)
 		"mem_raw_pool get_pool_mem_freed_ptr failed: user_mem is not in this pool!");
 	return nullptr;
 }
+#endif // ENABLE_MEM_POOL_CLEANUP
 
 CORE_NAMESPACE_END

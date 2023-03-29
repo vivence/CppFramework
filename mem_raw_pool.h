@@ -36,8 +36,12 @@ public:
 public:
 	void* alloc();
 	bool free(void* user_mem);
+#if ENABLE_MEM_POOL_CLEANUP
 	// NOTICE!! this function is expensive
 	size_t cleanup_free_blocks();
+#else
+	inline constexpr size_t cleanup_free_blocks() { return 0; }
+#endif // ENABLE_MEM_POOL_CLEANUP
 
 private:
 	void _push_cell(mem_cell& c);
@@ -51,6 +55,7 @@ private:
 		return block_mem_beg <= (intptr_t)p_cell && block_mem_end > (intptr_t)p_cell;
 	}
 
+#if ENABLE_MEM_POOL_CLEANUP
 private:
 	using _block_state_array_type = std::vector<bool*>;
 	using _block_state_map_type = std::map<void*, bool*>;
@@ -62,7 +67,10 @@ private:
 
 public:
 	bool* get_pool_mem_freed_ptr(void* user_mem);
-
+#else
+public:
+	inline bool* get_pool_mem_freed_ptr(void* user_mem) { return nullptr; }
+#endif // ENABLE_MEM_POOL_CLEANUP
 };
 
 CORE_NAMESPACE_END

@@ -31,7 +31,9 @@ class object_weak_ref final : dis_new {
     static_assert(std::is_base_of<support_weak_ref, _T>::value, "_T must be inherit from support_weak_ref");
 
 	_T* _p;
-    bool* _p_pool_mem_freed;
+#if ENABLE_MEM_POOL_CLEANUP
+	bool* _p_pool_mem_freed;
+#endif // ENABLE_MEM_POOL_CLEANUP
     support_weak_ref::_id_type _obj_id;
 
 public:
@@ -41,13 +43,17 @@ private:
     friend class object_factory;
     explicit object_weak_ref(_T* p, bool* p_pool_mem_freed = nullptr)
         : _p(p)
-        , _p_pool_mem_freed(p_pool_mem_freed)
+#if ENABLE_MEM_POOL_CLEANUP
+		, _p_pool_mem_freed(p_pool_mem_freed)
+#endif // ENABLE_MEM_POOL_CLEANUP
         , _obj_id((nullptr != p) ? static_cast<support_weak_ref*>(p)->_instance_id : support_weak_ref::_INVALID_ID)
     {
     }
     explicit object_weak_ref(const ref<_T>& obj_ref, bool* p_pool_mem_freed = nullptr)
 		: _p(const_cast<_T*>(obj_ref.operator->()))
+#if ENABLE_MEM_POOL_CLEANUP
 		, _p_pool_mem_freed(p_pool_mem_freed)
+#endif // ENABLE_MEM_POOL_CLEANUP
         , _obj_id((nullptr != obj_ref) ? obj_ref->_instance_id : support_weak_ref::_INVALID_ID)
     {
     }
@@ -67,10 +73,12 @@ public:
 private:
     _T* _safe_ref() const
     {
-        if (nullptr == *this)
-        {
-            environment::get_current_env().get_bug_reporter().report(BUG_TAG_WEAK_REF, "weak_ref is nullptr!");
-        }
+#if ENABLE_REF_SAFE_CHECK
+		if (nullptr == *this)
+		{
+			environment::get_current_env().get_bug_reporter().report(BUG_TAG_WEAK_REF, "weak_ref is nullptr!");
+		}
+#endif
         return _p;
     }
 
@@ -89,7 +97,11 @@ public:
     friend bool operator !=(std::nullptr_t p, const object_weak_ref<_TT>& wp);
 
 private:
-    inline bool _pool_mem_freed() const { return nullptr != _p_pool_mem_freed && *_p_pool_mem_freed; }
+#if ENABLE_MEM_POOL_CLEANUP
+	inline bool _pool_mem_freed() const { return nullptr != _p_pool_mem_freed && *_p_pool_mem_freed; }
+#else
+    inline constexpr bool _pool_mem_freed() const { return false; }
+#endif
 
 private:
     object_weak_ref* operator&() = delete;

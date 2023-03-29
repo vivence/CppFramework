@@ -3,7 +3,7 @@
 
 CORE_NAMESPACE_BEG
 
-#if REF_SAFE_CHECK
+#if ENABLE_REF_SAFE_CHECK
 
 typename object_temp_ref_destroyed_pointers::_pointer_set_type object_temp_ref_destroyed_pointers::_s_destroyed_pointers;
 

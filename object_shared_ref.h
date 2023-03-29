@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <utility>
 
-#if REF_SAFE_CHECK
+#if ENABLE_REF_SAFE_CHECK
 #include "bug_reporter.h"
 #endif // REF_SAFE_CHECK
 
@@ -98,7 +98,7 @@ private:
 		return --(static_cast<support_shared_ref*>(_p)->_ref_count);
 	}
 
-#if REF_SAFE_CHECK
+#if ENABLE_REF_SAFE_CHECK
 public:
 	const _T* operator->() const override
 	{

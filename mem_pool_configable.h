@@ -81,10 +81,14 @@ public:
 	void* alloc(size_t user_mem_size);
 	void* realloc(void* user_mem, size_t user_mem_size);
 	bool free(void* user_mem);
-	void cleanup_step();
 
-public:
+#if ENABLE_MEM_POOL_CLEANUP
+	void cleanup_step();
 	bool* get_pool_mem_freed_ptr(void* user_mem);
+#else
+	inline void cleanup_step() {}
+	inline bool* get_pool_mem_freed_ptr(void* user_mem) { return nullptr; }
+#endif // ENABLE_MEM_POOL_CLEANUP
 
 public:
 	struct info_for_global {
@@ -157,6 +161,7 @@ bool mem_pool_configable<_CellUnitSize, _BlockMaxSize>::free(void* user_mem)
 	return p_pool->free(user_mem);
 }
 
+#if ENABLE_MEM_POOL_CLEANUP
 template<size_t _CellUnitSize, size_t _BlockMaxSize>
 void mem_pool_configable<_CellUnitSize, _BlockMaxSize>::cleanup_step()
 {
@@ -184,7 +189,6 @@ void mem_pool_configable<_CellUnitSize, _BlockMaxSize>::cleanup_step()
 		}
 	}
 }
-
 template<size_t _CellUnitSize, size_t _BlockMaxSize>
 bool* mem_pool_configable<_CellUnitSize, _BlockMaxSize>::get_pool_mem_freed_ptr(void* user_mem)
 {
@@ -195,6 +199,7 @@ bool* mem_pool_configable<_CellUnitSize, _BlockMaxSize>::get_pool_mem_freed_ptr(
 	}
 	return p_pool->get_pool_mem_freed_ptr(user_mem);
 }
+#endif // ENABLE_MEM_POOL_CLEANUP
 
 CORE_NAMESPACE_END
 
