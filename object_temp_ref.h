@@ -59,6 +59,9 @@ private:
 	explicit object_temp_ref(_T* p) : ref<_T>(p) {}
 	explicit object_temp_ref(const ref<_T>& obj_ref) : ref<_T>(obj_ref) {}
 
+public:
+	~object_temp_ref() {}
+
 #if ENABLE_REF_SAFE_CHECK
 public:
 	const _T* operator->() const override 
