@@ -5,11 +5,11 @@
 #include "core.h"
 #include "noncopyable.h"
 #include "ref.h"
-#include "environment.h"
 #include <type_traits>
 #include <utility>
 
 #if ENABLE_REF_SAFE_CHECK
+#include "environment.h"
 #include "bug_reporter.h"
 #endif // REF_SAFE_CHECK
 
@@ -19,7 +19,7 @@ class object;
 
 class support_shared_ref : noncopyable {
 	friend class object_factory;
-	template<typename _T>
+	template<typename _T, typename _Deleter>
 	friend class object_shared_ref;
 
 	int _ref_count;
@@ -29,7 +29,7 @@ protected:
 	virtual ~support_shared_ref() {}
 };
 
-template<typename _T>
+template<typename _T, typename _Deleter>
 class object_shared_ref final : public ref<_T> {
 	static_assert(std::is_base_of<support_shared_ref, _T>::value, "_T must be inherit from support_shared_ref");
 
@@ -49,7 +49,7 @@ public:
 	{
 		if (nullptr != _p && 0 >= _remove_ref())
 		{
-			environment::get_cur_object_factory().delete_obj(_p);
+			_Deleter::delete_obj(_p);
 		}
 	}
 
@@ -120,8 +120,8 @@ private:
 #endif // REF_SAFE_CHECK
 };
 
-template<typename _T>
-object_shared_ref<_T> object_shared_ref<_T>::null_ref(nullptr);
+template<typename _T, typename _Deleter>
+object_shared_ref<_T, _Deleter> object_shared_ref<_T, _Deleter>::null_ref(nullptr);
 
 CORE_NAMESPACE_END
 

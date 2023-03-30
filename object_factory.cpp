@@ -1,9 +1,9 @@
 
 #include "object_factory.h"
+#include "environment.h"
 #include <vector>
 
 #if ENABLE_REF_SAFE_CHECK
-#include "environment.h"
 #include "bug_reporter.h"
 #endif // REF_SAFE_CHECK
 
@@ -96,6 +96,13 @@ void* temp_ref_mem_pool::_pop_cell()
 		_free_mem = (void*)((intptr_t)_free_mem + _cell_size);
 	}
 	return mem;
+}
+
+// --------------------------------------------------
+
+bool object_factory::_shared_ref_deleter::delete_obj(support_shared_ref* p_obj)
+{
+	return environment::get_cur_object_factory().delete_obj(p_obj);
 }
 
 // --------------------------------------------------

@@ -16,7 +16,7 @@ template<typename _TObj>
 class object_manager_auto final : noncopyable {
 	static_assert(std::is_base_of<object, _TObj>::value, "_TObj must be inherit from object");
 public:
-	using shared_ref = object_shared_ref<_TObj>;
+	using shared_ref = object_factory::object_shared_ref<_TObj>;
 	using ref = _TObj*;
 
 private:
@@ -33,7 +33,7 @@ public:
 	template<typename ..._Args>
 	shared_ref create(_Args&&... args);
 	template<typename _T, typename ..._Args>
-	object_shared_ref<_T>& create(_Args&&... args);
+	typename object_factory::object_shared_ref<_T>& create(_Args&&... args);
 };
 
 template<typename _TObj>
@@ -45,7 +45,7 @@ typename object_manager_auto<_TObj>::shared_ref object_manager_auto<_TObj>::crea
 
 template<typename _TObj>
 template<typename _T, typename ..._Args>
-object_shared_ref<_T>& object_manager_auto<_TObj>::create(_Args&&... args)
+typename object_factory::object_shared_ref<_T>& object_manager_auto<_TObj>::create(_Args&&... args)
 {
 	static_assert(std::is_base_of<_TObj, _T>::value, "_T must be inherit from _TObj");
 

@@ -102,6 +102,10 @@ private: // friend functions
 	template<typename _T>
 	friend class object_monitor_ptr;
 
+	struct _shared_ref_deleter { static bool delete_obj(support_shared_ref* p_obj); };
+	template<typename _T>
+	using object_shared_ref = object_shared_ref<_T, _shared_ref_deleter>;
+
 	template<typename _T, typename ..._Args>
 	_T* new_obj(_Args&&... args);
 	template<typename _T, typename _E>
