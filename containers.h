@@ -134,14 +134,26 @@ using queue = std::queue<_T, deque<_T>>;
 template<typename _T>
 using set = std::set<_T, std::less<_T>, allocator<_T>>;
 
+template<typename _T>
+using multiset = std::multiset<_T, std::less<_T>, allocator<_T>>;
+
 template<typename _K, typename _V>
 using map = std::map<_K, _V, std::less<_K>, allocator<std::pair<const _K, _V>>>;
+
+template<typename _K, typename _V>
+using multimap = std::multimap<_K, _V, std::less<_K>, allocator<std::pair<const _K, _V>>>;
 
 template<typename _T>
 using unordered_set = std::unordered_set<_T, std::hash<_T>, std::equal_to<_T>, allocator<_T>>;
 
+template<typename _T>
+using unordered_multiset = std::unordered_multiset<_T, std::hash<_T>, std::equal_to<_T>, allocator<_T>>;
+
 template<typename _K, typename _V>
 using unordered_map = std::unordered_map<_K, _V, std::hash<_K>, std::equal_to<_K>, allocator<std::pair<const _K, _V>>>;
+
+template<typename _K, typename _V>
+using unordered_multimap = std::unordered_multimap<_K, _V, std::hash<_K>, std::equal_to<_K>, allocator<std::pair<const _K, _V>>>;
 
 CORE_NAMESPACE_END
 
