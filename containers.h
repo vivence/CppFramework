@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <forward_list>
 #include <deque>
 #include <stack>
 #include <queue>
@@ -121,6 +122,9 @@ using vector = std::vector<_T, allocator<_T>>;
 
 template<typename _T>
 using list = std::list<_T, allocator<_T>>;
+
+template<typename _T>
+using forward_list = std::forward_list<_T, allocator<_T>>;
 
 template<typename _T>
 using deque = std::deque<_T, allocator<_T>>;
