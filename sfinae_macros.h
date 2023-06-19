@@ -3,6 +3,7 @@
 #define SFINAE_MACROS_H
 
 #include <type_traits>
+#include "core.h"
 
 CORE_NAMESPACE_BEG
 
@@ -24,10 +25,17 @@ using enable_if_is_pointer_int = enable_if_int<std::is_pointer<_T>::value>;
 template<typename _T>
 using enable_if_is_not_pointer_int = enable_if_int<!std::is_pointer<_T>::value>;
 
-template<template<typename> typename T, typename TT>
-std::true_type is_base_of_template(T<TT>) {}
-template<template<typename> typename T>
-std::false_type is_base_of_template(...) {}
+template<template<typename> typename B>
+struct test_base_of_template {
+	template<typename TT>
+	static std::true_type test(B<TT>);
+	static std::false_type test(...);
+};
+
+template<typename T, template<typename> typename B>
+struct is_base_of_template {
+	static constexpr bool value = decltype(test_base_of_template<B>::test(std::declval<T>()))::value;
+};
 
 CORE_NAMESPACE_END
 
