@@ -25,9 +25,9 @@ template<typename _T>
 using enable_if_is_not_pointer_int = enable_if_int<!std::is_pointer<_T>::value>;
 
 template<template<typename> typename T, typename TT>
-std::true_type is_base_of_template(T<TT>);
+std::true_type is_base_of_template(T<TT>) {}
 template<template<typename> typename T>
-std::false_type is_base_of_template(...);
+std::false_type is_base_of_template(...) {}
 
 CORE_NAMESPACE_END
 
