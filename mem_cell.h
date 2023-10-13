@@ -3,18 +3,29 @@
 #define MEM_CELL_H
 
 #include "core.h"
+#include <utility>
 
+#define USER_MEM_ALIGN 1
 #define COMPACT_CELL 1
 
 CORE_NAMESPACE_BEG
 
 #pragma pack(push, 1)
 struct mem_cell {
-	typedef uint8_t head_type;
+	typedef uint8_t head_type; // sizeof(head_type) can't bigger than sizeof(size_t)
+#if USER_MEM_ALIGN
+	typedef size_t align_type;
+#else
+	typedef head_type align_type;
+#endif // USER_MEM_ALIGN
 	/// <summary>
 	/// 最高位1位位0则表示used，为1则表示unused，剩余的低位由用户决定如何使用
 	/// </summary>
-	head_type head = 0;
+	union
+	{
+		head_type head = 0;
+		align_type __align;
+	};
 
 #if COMPACT_CELL
 	union
@@ -40,9 +51,9 @@ public:
 	enum {
 		PoolCount = ((head_type)~0 >> 1) +1,
 #if COMPACT_CELL
-		UserMemOffset = sizeof(head_type) 
+		UserMemOffset = sizeof(__align)
 #else
-		UserMemOffset = sizeof(head_type) + sizeof(mem_cell*)
+		UserMemOffset = sizeof(__align) + sizeof(mem_cell*)
 #endif // COMPACT_CELL
 	};
 
