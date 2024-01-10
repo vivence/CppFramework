@@ -47,57 +47,57 @@ public:
     allocator(const allocator<_U>&) noexcept {};
     allocator& operator =(const allocator&) = delete;
 
-    pointer allocate(size_type count) 
+    inline pointer allocate(size_type count)
     {
         return static_cast<pointer>(mem_pool_utils::alloc(sizeof(_T) * count));
     }
 
-    pointer allocate(size_type count, const_void_pointer hit)
+    inline pointer allocate(size_type count, const_void_pointer hit)
     {
         hit;
         return allocate(count);
     }
 
-    void deallocate(pointer p, size_type count)
+    inline void deallocate(pointer p, size_type count)
     {
         count;
         mem_pool_utils::free(p);
     }
 
     template<typename _U, typename ...Args>
-    void construct(_U* const p, Args&&... args)
+    inline void construct(_U* const p, Args&&... args)
     {
         ::new(p) _U(std::forward<Args>(args)...);
     }
 
     template <typename _U>
-    void destroy(_U* const p)
+    inline void destroy(_U* const p)
     {
         p->~_U();
     }
 
-    pointer address(reference x) 
+    inline pointer address(reference x)
     {
         return (pointer)&x;
     }
 
-    const_pointer address(const_reference x) 
+    inline const_pointer address(const_reference x)
     {
         return (const_pointer)&x;
     }
 
-    size_type max_size() const 
+    inline size_type max_size() const
     {
         return static_cast<size_type>(-1) / sizeof(_T);
     }
 };
 template <class _T, class _P>
-bool operator==(const allocator<_T>&, const allocator<_P>&) noexcept 
+inline bool operator==(const allocator<_T>&, const allocator<_P>&) noexcept
 {
     return true;
 }
 template <class _T, class _P>
-bool operator!=(const allocator<_T>&, const allocator<_P>&) noexcept 
+inline bool operator!=(const allocator<_T>&, const allocator<_P>&) noexcept
 {
     return false;
 }

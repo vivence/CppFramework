@@ -50,7 +50,7 @@ public:
 
 public:
 	void on_frame_end();
-	void cleanup_mem_step() { _mem_pool.cleanup_step(); }
+	inline void cleanup_mem_step() { _mem_pool.cleanup_step(); }
 
 
 #if ENABLE_REF_SAFE_CHECK
@@ -71,7 +71,7 @@ private: // private functions
 	void* _alloc_temp_ref_mem();
 	void _recyle_temp_refs();
 	template<typename _T, enable_if_convertible_int<_T, support_weak_ref> = 0>
-	void _init_obj(_T* p, void* user_mem)
+	inline void _init_obj(_T* p, void* user_mem)
 	{
 		auto p_weak_obj = static_cast<support_weak_ref*>(p);
 		p_weak_obj->_instance_id = _next_object_id++;
@@ -80,7 +80,7 @@ private: // private functions
 		p_obj->_mem = user_mem;
 	}
 	template<typename _T, enable_if_not_convertible_int<_T, support_weak_ref> = 0>
-	void _init_obj(_T* p, void* user_mem)
+	inline void _init_obj(_T* p, void* user_mem)
 	{
 		auto p_obj = static_cast<object*>(p);
 		p_obj->_mem = user_mem;
@@ -111,7 +111,7 @@ private: // friend functions
 	template<typename _T, typename _E>
 	_T* new_obj(std::initializer_list<_E> list);
 	template<typename _T>
-	bool delete_obj(_T* p)
+	inline bool delete_obj(_T* p)
 	{
 		auto p_obj = cast_utils<_T, object>::cast(p);
 		if (nullptr == p_obj)
@@ -122,7 +122,7 @@ private: // friend functions
 		return true;
 	}
 	template<typename _T>
-	bool delete_obj_immediately(_T* p)
+	inline bool delete_obj_immediately(_T* p)
 	{
 		auto p_obj = cast_utils<_T, object>::cast(p);
 		if (nullptr == p_obj)
@@ -135,7 +135,7 @@ private: // friend functions
 
 #if ENABLE_MEM_POOL_CLEANUP
 	template<typename _T>
-	object_weak_ref<_T> get_weak_ref(_T* p)
+	inline object_weak_ref<_T> get_weak_ref(_T* p)
 	{
 		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
 		if (nullptr == p)
@@ -145,7 +145,7 @@ private: // friend functions
 		return object_weak_ref<_T>(p, _mem_pool.get_pool_mem_freed_ptr(cast_utils<_T, object>::cast(p)->_mem));
 	}
 	template<typename _T>
-	object_weak_ref<_T> get_weak_ref(const ref<_T>& obj_ref)
+	inline object_weak_ref<_T> get_weak_ref(const ref<_T>& obj_ref)
 	{
 		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
 		if (nullptr == obj_ref)
@@ -156,13 +156,13 @@ private: // friend functions
 	}
 #else
 	template<typename _T>
-	object_weak_ref<_T> get_weak_ref(_T* p)
+	inline object_weak_ref<_T> get_weak_ref(_T* p)
 	{
 		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
 		return object_weak_ref<_T>(p);
 	}
 	template<typename _T>
-	object_weak_ref<_T> get_weak_ref(const ref<_T>& obj_ref)
+	inline object_weak_ref<_T> get_weak_ref(const ref<_T>& obj_ref)
 	{
 		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
 		return object_weak_ref<_T>(obj_ref);
@@ -170,26 +170,26 @@ private: // friend functions
 #endif // ENABLE_MEM_POOL_CLEANUP
 
 	template<typename _T>
-	object_temp_ref<_T>& get_temp_ref(_T* p_obj)
+	inline object_temp_ref<_T>& get_temp_ref(_T* p_obj)
 	{
 		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
 		return *new(_alloc_temp_ref_mem()) object_temp_ref<_T>(p_obj);
 	}
 	template<typename _T>
-	object_temp_ref<_T>& get_temp_ref(const ref<_T>& obj_ref)
+	inline object_temp_ref<_T>& get_temp_ref(const ref<_T>& obj_ref)
 	{
 		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
 		return *new(_alloc_temp_ref_mem()) object_temp_ref<_T>(obj_ref);
 	}
 
 	template<typename _T>
-	object_shared_ref<_T> get_shared_ref(_T* p_obj)
+	inline object_shared_ref<_T> get_shared_ref(_T* p_obj)
 	{
 		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
 		return std::move(object_shared_ref<_T>(p_obj));
 	}
 	template<typename _T>
-	object_shared_ref<_T> get_shared_ref(const ref<_T>& obj_ref)
+	inline object_shared_ref<_T> get_shared_ref(const ref<_T>& obj_ref)
 	{
 		static_assert(std::is_base_of<object, _T>::value, "_T must be inherit from object");
 		return std::move(object_shared_ref<_T>(obj_ref));

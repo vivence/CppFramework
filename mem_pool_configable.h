@@ -33,7 +33,7 @@ class mem_pool_configable : noncopyable {
 	_pool_pointer_type _pools[mem_cell::PoolCount];
 	size_t _cleanup_index = 0;
 
-	mem_raw_pool* _get_pool(void* user_mem)
+	inline mem_raw_pool* _get_pool(void* user_mem)
 	{
 		auto i = static_cast<size_t>(mem_cell::get_cell(user_mem).head);
 		return mem_cell::PoolCount > i ? _pools[i].get() : nullptr;
@@ -41,7 +41,7 @@ class mem_pool_configable : noncopyable {
 
 	template<size_t _PoolIndex>
 	struct _pool_creater {
-		static void create(_pool_pointer_type pools[])
+		inline static void create(_pool_pointer_type pools[])
 		{
 			pools[_PoolIndex] = _pool_pointer_type(new mem_raw_pool(
 				_config::calc::cell_size_by_pool_index(_PoolIndex), 
@@ -51,7 +51,7 @@ class mem_pool_configable : noncopyable {
 	};
 	template<>
 	struct _pool_creater<0> {
-		static void create(_pool_pointer_type pools[])
+		inline static void create(_pool_pointer_type pools[])
 		{
 			pools[0] = _pool_pointer_type(new mem_raw_pool(
 				_config::calc::cell_size_by_pool_index(0),
@@ -67,7 +67,7 @@ public:
 
 public:
 	template<typename _T>
-	void* alloc()
+	inline void* alloc()
 	{
 		using type_meta = typename _config::template type_meta<_T>;
 		static_assert(type_meta::pool_index < mem_cell::PoolCount, "pool_index is too large");

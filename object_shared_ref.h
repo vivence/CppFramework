@@ -25,7 +25,7 @@ class support_shared_ref : noncopyable {
 	int _ref_count;
 
 protected:
-	support_shared_ref() : _ref_count(0) {}
+	inline support_shared_ref() : _ref_count(0) {}
 	virtual ~support_shared_ref() {}
 };
 
@@ -41,8 +41,8 @@ public:
 private:
 	friend class object_factory;
 	friend struct object_ref_utils;
-	explicit object_shared_ref(_T* p = nullptr) : ref<_T>(p) { _add_ref(); }
-	explicit object_shared_ref(const ref<_T>& obj_ref) : ref<_T>(obj_ref) { _add_ref(); }
+	inline explicit object_shared_ref(_T* p = nullptr) : ref<_T>(p) { _add_ref(); }
+	inline explicit object_shared_ref(const ref<_T>& obj_ref) : ref<_T>(obj_ref) { _add_ref(); }
 
 public:
 	~object_shared_ref()
@@ -54,10 +54,10 @@ public:
 	}
 
 public:
-	object_shared_ref(const object_shared_ref& other) : _p(other._p) { _add_ref(); }
-	object_shared_ref(object_shared_ref&& other) : _p(other._p) { other._p = nullptr; }
+	inline object_shared_ref(const object_shared_ref& other) : _p(other._p) { _add_ref(); }
+	inline object_shared_ref(object_shared_ref&& other) : _p(other._p) { other._p = nullptr; }
 
-	object_shared_ref& operator=(const object_shared_ref& other)
+	inline object_shared_ref& operator=(const object_shared_ref& other)
 	{
 		if (other._p != _p)
 		{
@@ -65,7 +65,7 @@ public:
 		}
 		return *this;
 	}
-	object_shared_ref& operator=(object_shared_ref&& other)
+	inline object_shared_ref& operator=(object_shared_ref&& other)
 	{
 		if (other._p != _p)
 		{
@@ -75,13 +75,13 @@ public:
 	}
 
 public:
-	void swap(object_shared_ref& other)
+	inline void swap(object_shared_ref& other)
 	{
 		std::swap(_p, other._p);
 	}
 
 private:
-	int _add_ref()
+	inline int _add_ref()
 	{
 		if (nullptr == _p)
 		{
@@ -89,7 +89,7 @@ private:
 		}
 		return ++(static_cast<support_shared_ref*>(_p)->_ref_count);
 	}
-	int _remove_ref()
+	inline int _remove_ref()
 	{
 		if (nullptr == _p)
 		{
@@ -100,16 +100,16 @@ private:
 
 #if ENABLE_REF_SAFE_CHECK
 public:
-	const _T* operator->() const override
+	inline const _T* operator->() const override
 	{
 		return _safe_ref();
 	}
-	_T* operator->() override
+	inline _T* operator->() override
 	{
 		return _safe_ref();
 	}
 private:
-	_T* _safe_ref() const
+	inline _T* _safe_ref() const
 	{
 		if (nullptr == *this)
 		{

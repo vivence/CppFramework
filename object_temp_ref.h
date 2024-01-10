@@ -24,15 +24,15 @@ class object_temp_ref_destroyed_pointers {
 
 	using _pointer_set_type = std::set<object*>;
 	static _pointer_set_type _s_destroyed_pointers;
-	static void add_destroyed_pointer(object* p)
+	inline static void add_destroyed_pointer(object* p)
 	{
 		_s_destroyed_pointers.insert(p);
 	}
-	static void clear_destroyed_pointers()
+	inline static void clear_destroyed_pointers()
 	{
 		_s_destroyed_pointers.clear();
 	}
-	static void check_and_report(object* p)
+	inline static void check_and_report(object* p)
 	{
 		if (_s_destroyed_pointers.end() != _s_destroyed_pointers.find(p))
 		{
@@ -56,24 +56,24 @@ public:
 private:
 	friend class object_factory;
 	friend struct object_ref_utils;
-	explicit object_temp_ref(_T* p) : ref<_T>(p) {}
-	explicit object_temp_ref(const ref<_T>& obj_ref) : ref<_T>(obj_ref) {}
+	inline explicit object_temp_ref(_T* p) : ref<_T>(p) {}
+	inline explicit object_temp_ref(const ref<_T>& obj_ref) : ref<_T>(obj_ref) {}
 
 public:
 	~object_temp_ref() {}
 
 #if ENABLE_REF_SAFE_CHECK
 public:
-	const _T* operator->() const override 
+	inline const _T* operator->() const override
 	{ 
 		return _safe_ref();
 	}
-	_T* operator->() override
+	inline _T* operator->() override
 	{
 		return _safe_ref();
 	}
 private:
-	_T* _safe_ref() const
+	inline _T* _safe_ref() const
 	{
 		object_temp_ref_destroyed_pointers::check_and_report(static_cast<object*>(ref<_T>::_p));
 		return ref<_T>::_p;

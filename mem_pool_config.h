@@ -19,27 +19,27 @@ struct mem_pool_config {
 	struct calc {
 
 		// cell raw size is not less than sizeof(mem_cell)
-		constexpr static size_t cell_raw_size(size_t user_mem_size)
+		inline constexpr static size_t cell_raw_size(size_t user_mem_size)
 		{
 			// (std::max): fxxk the macro "max"  
 			return (std::max)(user_mem_size + mem_cell::UserMemOffset, sizeof(mem_cell));
 		}
 
 		// all indexes are divided according to multiples of CellUnitSize
-		constexpr static size_t pool_index(size_t user_mem_size)
+		inline constexpr static size_t pool_index(size_t user_mem_size)
 		{
 			auto raw_size = cell_raw_size(user_mem_size);
 			return (raw_size - 1) / _CellUnitSize;
 		}
 
 		// cell size is the min multiples of CellUnitSize
-		constexpr static size_t cell_size(size_t user_mem_size)
+		inline constexpr static size_t cell_size(size_t user_mem_size)
 		{
 			return _CellUnitSize * (pool_index(user_mem_size) + 1);
 		}
 
 		// cell count is (BlockMaxSize / cell size), but min count is 1
-		constexpr static size_t cell_count_by_cell_size(size_t c_size)
+		inline constexpr static size_t cell_count_by_cell_size(size_t c_size)
 		{
 			auto count = _BlockMaxSize / c_size;
 			if (0 == count)
@@ -49,17 +49,17 @@ struct mem_pool_config {
 			return count;
 		}
 
-		constexpr static size_t cell_count(size_t user_mem_size)
+		inline constexpr static size_t cell_count(size_t user_mem_size)
 		{
 			return cell_count_by_cell_size(cell_size(user_mem_size));
 		}
 
-		constexpr static size_t cell_size_by_pool_index(size_t p_index)
+		inline constexpr static size_t cell_size_by_pool_index(size_t p_index)
 		{
 			return _CellUnitSize * (p_index + 1);
 		}
 
-		constexpr static size_t cell_count_by_pool_index(size_t p_index)
+		inline constexpr static size_t cell_count_by_pool_index(size_t p_index)
 		{
 			return cell_count_by_cell_size(cell_size_by_pool_index(p_index));
 		}

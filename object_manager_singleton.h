@@ -27,72 +27,56 @@ public:
         : _instance(nullptr), _obj_factory(obj_factory) 
     {
     }
-    ~object_manager_singleton();
+	~object_manager_singleton()
+	{
+		if (nullptr != _instance)
+		{
+			_obj_factory.delete_obj(_instance);
+			_instance = nullptr;
+		}
+	}
 
 public:
     template<typename ..._Args>
-    weak_ref get_instance(_Args&&... args);
+	weak_ref get_instance(_Args&&... args)
+	{
+		if (nullptr != _instance)
+		{
+			return _obj_factory.get_weak_ref(_instance);
+		}
+
+		auto p_obj = _obj_factory.new_obj<_TObj>(std::forward<_Args>(args)...);
+		return _obj_factory.get_weak_ref(p_obj);
+	}
 
     /// <summary>
     /// deconstruct in frame end
     /// </summary>
-    void destroy_instance();
+	inline void destroy_instance()
+	{
+		_destroy(&object_factory::delete_obj);
+	}
 
     /// <summary>
     /// deconstruct immediately
     /// </summary>
-    void destroy_instance_immediately();
+    inline void destroy_instance_immediately()
+	{
+		_destroy(&object_factory::delete_obj_immediately);
+	}
 
 private:
-    void _destroy(void (object_factory::* delete_fuc)(object*));
+    inline void _destroy(void (object_factory::* delete_fuc)(object*))
+	{
+		if (nullptr == _instance)
+		{
+			return;
+		}
+
+		(_obj_factory.*delete_fuc)(_instance);
+		_instance = nullptr;
+	}
 };
-
-template<typename _TObj>
-object_manager_singleton<_TObj>::~object_manager_singleton()
-{
-    if (nullptr != _instance)
-    {
-        _obj_factory.delete_obj(_instance);
-        _instance = nullptr;
-    }
-}
-
-template<typename _TObj>
-template<typename ..._Args>
-typename object_manager_singleton<_TObj>::weak_ref object_manager_singleton<_TObj>::get_instance(_Args&&... args)
-{
-    if (nullptr != _instance)
-    {
-        return _obj_factory.get_weak_ref(_instance);
-    }
-
-    auto p_obj = _obj_factory.new_obj<_TObj>(std::forward<_Args>(args)...);
-    return _obj_factory.get_weak_ref(p_obj);
-}
-
-template<typename _TObj>
-void object_manager_singleton<_TObj>::destroy_instance()
-{
-    _destroy(&object_factory::delete_obj);
-}
-
-template<typename _TObj>
-void object_manager_singleton<_TObj>::destroy_instance_immediately()
-{
-    _destroy(&object_factory::delete_obj_immediately);
-}
-
-template<typename _TObj>
-void object_manager_singleton<_TObj>::_destroy(void (object_factory::* delete_fuc)(object*))
-{
-    if (nullptr == _instance)
-    {
-        return;
-    }
-
-    (_obj_factory.*delete_fuc)(_instance);
-    _instance = nullptr;
-}
 
 CORE_NAMESPACE_END
 

@@ -31,27 +31,19 @@ public:
 
 public:
 	template<typename ..._Args>
-	shared_ref create(_Args&&... args);
+	inline shared_ref create(_Args&&... args)
+	{
+		return create<_TObj, _Args...>(std::forward<_Args>(args)...);
+	}
 	template<typename _T, typename ..._Args>
-	typename object_factory::object_shared_ref<_T>& create(_Args&&... args);
+	inline typename object_factory::object_shared_ref<_T>& create(_Args&&... args)
+	{
+		static_assert(std::is_base_of<_TObj, _T>::value, "_T must be inherit from _TObj");
+
+		_T* obj_ref = _obj_factory.new_obj<_T>(std::forward<_Args>(args)...);
+		return _obj_factory.get_shared_ref(obj_ref);
+	}
 };
-
-template<typename _TObj>
-template<typename ..._Args>
-typename object_manager_auto<_TObj>::shared_ref object_manager_auto<_TObj>::create(_Args&&... args)
-{
-	return create<_TObj>(std::forward<_Args>(args)...);
-}
-
-template<typename _TObj>
-template<typename _T, typename ..._Args>
-typename object_factory::object_shared_ref<_T>& object_manager_auto<_TObj>::create(_Args&&... args)
-{
-	static_assert(std::is_base_of<_TObj, _T>::value, "_T must be inherit from _TObj");
-
-	_T* obj_ref = _obj_factory.new_obj<_T>(std::forward<_Args>(args)...);
-	return _obj_factory.get_shared_ref(obj_ref);
-}
 
 CORE_NAMESPACE_END
 

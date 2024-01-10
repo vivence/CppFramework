@@ -14,13 +14,13 @@ class environment : noncopyable {
     static bool _init_default_enviroment();
 
 public:
-    static environment& get_current_env()
+    inline static environment& get_current_env()
     { 
         static bool inited = _init_default_enviroment();
         return *_s_current_env; 
 	}
-    static bug_reporter& get_cur_bug_reporter() { return get_current_env().get_bug_reporter(); }
-	static object_factory& get_cur_object_factory() { return get_current_env().get_object_factory(); }
+    inline static bug_reporter& get_cur_bug_reporter() { return get_current_env().get_bug_reporter(); }
+    inline static object_factory& get_cur_object_factory() { return get_current_env().get_object_factory(); }
 
 protected:
     static environment* _s_current_env;

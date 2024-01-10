@@ -18,11 +18,11 @@ struct mem_cell {
 #else
 	typedef head_type align_type;
 #endif // USER_MEM_ALIGN
-	/// <summary>
-	/// 最高位1位位0则表示used，为1则表示unused，剩余的低位由用户决定如何使用
-	/// </summary>
 	union
 	{
+		/// <summary>
+		/// 最高位1位位0则表示used，为1则表示unused，剩余的低位由用户决定如何使用
+		/// </summary>
 		head_type head = 0;
 		align_type __align;
 	};
@@ -33,7 +33,7 @@ struct mem_cell {
 #endif // COMPACT_CELL
 
 		/// <summary>
-		/// 如果高频率、高数量分配明显小于sizeof(mem_cell)的内存，可以考虑将p_next_cell优化为一字节的block内索引（会略微增加链表操作的开销）
+		/// 这里没必要再优化p_next_cell的大小了，如果分配的对象尺寸都小于一个指针了，那么应该考虑值类型
 		/// </summary>
 		mem_cell* p_next_cell = nullptr;
 #pragma warning(disable : 4200)
@@ -57,24 +57,24 @@ public:
 #endif // COMPACT_CELL
 	};
 
-	void mark_unused()
+	inline void mark_unused()
 	{
 		head = _UnuseMark;
 	}
-	bool is_unused() const
+	inline bool is_unused() const
 	{
 		return _UnuseMark == head;
 	}
-	void mark_used()
+	inline void mark_used()
 	{
 		head = _UsedMark;
 	}
-	bool is_used() const 
+	inline bool is_used() const
 	{
 		return !is_unused();
 	}
 
-	static mem_cell& get_cell(void* user_mem)
+	inline static mem_cell& get_cell(void* user_mem)
 	{
 		return *(mem_cell*)((intptr_t)user_mem - UserMemOffset);
 	}

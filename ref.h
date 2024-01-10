@@ -13,7 +13,7 @@ protected:
     _T* _p;
 
 public:
-    explicit ref(_T* p = nullptr) : _p(p) {}
+    inline explicit ref(_T* p = nullptr) : _p(p) {}
     virtual ~ref() { _p = nullptr; }
 
 public:

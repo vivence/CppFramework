@@ -50,7 +50,7 @@ private:
 	void _push_block_cells_into_free_link(void* block);
 	bool _block_is_free(void* block);
 	void _pop_block_cells_from_free_link(void* block);
-	static bool _cell_is_in_block(mem_cell* p_cell, const intptr_t block_mem_beg, const intptr_t block_mem_end)
+	inline static bool _cell_is_in_block(mem_cell* p_cell, const intptr_t block_mem_beg, const intptr_t block_mem_end)
 	{
 		return block_mem_beg <= (intptr_t)p_cell && block_mem_end > (intptr_t)p_cell;
 	}

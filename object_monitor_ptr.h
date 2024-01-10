@@ -95,7 +95,7 @@ public: // create and destroy
 	}
 
 private:
-	void _check_valid() const
+	inline void _check_valid() const
 	{
 		auto p_info = _get_info();
 		if (nullptr != p_info && p_info->destroyed)
@@ -111,12 +111,12 @@ private: // private constructors
 	friend struct object_ptr_utils;
 	template<typename _U>
 	friend class object_monitor_ptr;
-	explicit object_monitor_ptr(_T* p) noexcept : _p(p) { _check_valid(); _add_ref(); }
-	explicit object_monitor_ptr(const _T* p) noexcept : object_monitor_ptr(const_cast<_T*>(p)) {}
+	inline explicit object_monitor_ptr(_T* p) noexcept : _p(p) { _check_valid(); _add_ref(); }
+	inline explicit object_monitor_ptr(const _T* p) noexcept : object_monitor_ptr(const_cast<_T*>(p)) {}
 
 public: // default constructors
-	object_monitor_ptr() : _p(nullptr) {}
-	object_monitor_ptr(nullptr_t) : _p(nullptr) {}
+	inline object_monitor_ptr() : _p(nullptr) {}
+	inline object_monitor_ptr(nullptr_t) : _p(nullptr) {}
 
 public:
 	~object_monitor_ptr()
@@ -144,11 +144,11 @@ public:
 
 public: // implicit constructors 
 	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
-	object_monitor_ptr(object_monitor_ptr<_D>& p) noexcept : object_monitor_ptr(static_cast<_T*>(p.operator->())) {}
+	inline object_monitor_ptr(object_monitor_ptr<_D>& p) noexcept : object_monitor_ptr(static_cast<_T*>(p.operator->())) {}
 	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
-	object_monitor_ptr(const object_monitor_ptr<_D>& p) noexcept : object_monitor_ptr(static_cast<_T*>(const_cast<_D*>(p.operator->()))) {}
+	inline object_monitor_ptr(const object_monitor_ptr<_D>& p) noexcept : object_monitor_ptr(static_cast<_T*>(const_cast<_D*>(p.operator->()))) {}
 	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
-	object_monitor_ptr(object_monitor_ptr<_D>&& p) noexcept 
+	inline object_monitor_ptr(object_monitor_ptr<_D>&& p) noexcept
 		: _p(static_cast<_T*>(p.operator->())) 
 	{
 		_check_valid();
@@ -156,31 +156,31 @@ public: // implicit constructors
 	}
 
 public: // implicit conversions
-	//operator bool() const { return nullptr != _p; } // Ambiguity of function overloading
+	//inline operator bool() const { return nullptr != _p; } // Ambiguity of function overloading
 
 private: // private assign
-	object_monitor_ptr& operator =(_T* p) noexcept
+	inline object_monitor_ptr& operator =(_T* p) noexcept
 	{
 		if (_p == p) { return *this; }
 		object_monitor_ptr(p).swap(*this);
 		return *this;
 	}
-	object_monitor_ptr& operator =(const _T* p) noexcept { *this = const_cast<_T*>(p); return *this; }
+	inline object_monitor_ptr& operator =(const _T* p) noexcept { *this = const_cast<_T*>(p); return *this; }
 
 	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
-	object_monitor_ptr& operator =(_D* p) noexcept { *this = static_cast<_T*>(p); return *this; }
+	inline object_monitor_ptr& operator =(_D* p) noexcept { *this = static_cast<_T*>(p); return *this; }
 	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
-	object_monitor_ptr& operator =(const _D* p) noexcept { *this = const_cast<_D*>(p); return *this; }
+	inline object_monitor_ptr& operator =(const _D* p) noexcept { *this = const_cast<_D*>(p); return *this; }
 
 public: // copy and assign
-	object_monitor_ptr(const object_monitor_ptr& other) noexcept : object_monitor_ptr(other._p) {}
-	object_monitor_ptr& operator =(const object_monitor_ptr& other) noexcept
+	inline object_monitor_ptr(const object_monitor_ptr& other) noexcept : object_monitor_ptr(other._p) {}
+	inline object_monitor_ptr& operator =(const object_monitor_ptr& other) noexcept
 	{
 		if (other == *this) { return *this; }
 		object_monitor_ptr(other).swap(*this);
 		return *this;
 	}
-	object_monitor_ptr& operator =(nullptr_t) noexcept
+	inline object_monitor_ptr& operator =(nullptr_t) noexcept
 	{
 		if (nullptr == _p) { return *this; }
 		object_monitor_ptr(nullptr).swap(*this);
@@ -188,13 +188,13 @@ public: // copy and assign
 	}
 
 	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
-	object_monitor_ptr& operator =(object_monitor_ptr<_D>& p) noexcept { *this = p.operator->(); return *this; }
+	inline object_monitor_ptr& operator =(object_monitor_ptr<_D>& p) noexcept { *this = p.operator->(); return *this; }
 	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
-	object_monitor_ptr& operator =(const object_monitor_ptr<_D>& p) noexcept { *this = p.operator->(); return *this; }
+	inline object_monitor_ptr& operator =(const object_monitor_ptr<_D>& p) noexcept { *this = p.operator->(); return *this; }
 
 public: // move and assign
 	object_monitor_ptr(object_monitor_ptr&& other) noexcept : _p(other._p) { _check_valid(); other._p = nullptr; }
-	object_monitor_ptr& operator =(object_monitor_ptr&& other) noexcept
+	inline object_monitor_ptr& operator =(object_monitor_ptr&& other) noexcept
 	{
 		if (other == *this) { return *this; }
 		object_monitor_ptr(std::move(other)).swap(*this);
@@ -202,7 +202,7 @@ public: // move and assign
 	}
 
 	template<typename _D, enable_if_convertible_int<_D*, _T*> = 0>
-	object_monitor_ptr& operator =(object_monitor_ptr<_D>&& other)
+	inline object_monitor_ptr& operator =(object_monitor_ptr<_D>&& other)
 	{ 
 		if (other == *this) { return *this; }
 		object_monitor_ptr(std::move(other)).swap(*this);
@@ -210,14 +210,14 @@ public: // move and assign
 	}
 
 public: // swap
-	void swap(object_monitor_ptr& other) noexcept { std::swap(_p, other._p); }
+	inline void swap(object_monitor_ptr& other) noexcept { std::swap(_p, other._p); }
 
 public: // work as raw pointer
-	_T* operator->() { _check_valid(); return _p; }
-	const _T* operator->() const { _check_valid(); return _p; }
+	inline _T* operator->() { _check_valid(); return _p; }
+	inline const _T* operator->() const { _check_valid(); return _p; }
 
-	_T& operator*() { _check_valid(); return *_p; }
-	const _T& operator*() const { _check_valid(); return *_p; }
+	inline _T& operator*() { _check_valid(); return *_p; }
+	inline const _T& operator*() const { _check_valid(); return *_p; }
 
 public: // comparators as left hand
 	inline bool operator ==(const object_monitor_ptr& rhs) const { return _p == rhs._p; }

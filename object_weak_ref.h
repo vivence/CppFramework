@@ -22,7 +22,7 @@ class support_weak_ref : noncopyable {
 	_id_type _instance_id;
 
 protected:
-	support_weak_ref() : _instance_id(_INVALID_ID) {};
+    inline support_weak_ref() : _instance_id(_INVALID_ID) {};
 	virtual ~support_weak_ref() { _instance_id = _INVALID_ID; }
 };
 
@@ -41,7 +41,7 @@ public:
 
 private:
     friend class object_factory;
-    explicit object_weak_ref(_T* p, bool* p_pool_mem_freed = nullptr)
+    inline explicit object_weak_ref(_T* p, bool* p_pool_mem_freed = nullptr)
         : _p(p)
 #if ENABLE_MEM_POOL_CLEANUP
 		, _p_pool_mem_freed(p_pool_mem_freed)
@@ -49,7 +49,7 @@ private:
         , _obj_id((nullptr != p) ? static_cast<support_weak_ref*>(p)->_instance_id : support_weak_ref::_INVALID_ID)
     {
     }
-    explicit object_weak_ref(const ref<_T>& obj_ref, bool* p_pool_mem_freed = nullptr)
+    inline explicit object_weak_ref(const ref<_T>& obj_ref, bool* p_pool_mem_freed = nullptr)
 		: _p(const_cast<_T*>(obj_ref.operator->()))
 #if ENABLE_MEM_POOL_CLEANUP
 		, _p_pool_mem_freed(p_pool_mem_freed)
@@ -59,19 +59,19 @@ private:
     }
 
 public:
-    object_weak_ref() : _obj_id(support_weak_ref::_INVALID_ID), _p(nullptr) {}
+    inline object_weak_ref() : _obj_id(support_weak_ref::_INVALID_ID), _p(nullptr) {}
 
 public:
     /// <summary>
     /// called after checking not equal to nullptr, or may throw null pointer exception
     /// </summary>
-    const _T* operator->() const throw() { return _safe_ref(); }
+    inline const _T* operator->() const throw() { return _safe_ref(); }
     /// <summary>
     /// called after checking not equal to nullptr, or may throw null pointer exception
     /// </summary>
-    _T* operator->() throw() { return _safe_ref(); }
+    inline _T* operator->() throw() { return _safe_ref(); }
 private:
-    _T* _safe_ref() const
+    inline _T* _safe_ref() const
     {
 #if ENABLE_REF_SAFE_CHECK
 		if (nullptr == *this)

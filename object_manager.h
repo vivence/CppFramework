@@ -39,19 +39,28 @@ public:
 
 public:
     template<typename ..._Args>
-    weak_ref create(id_type id, _Args&&... args);
+	weak_ref create(id_type id, _Args&&... args)
+	{
+		return create<_TObj, _Args...>(id, std::forward<_Args>(args)...);
+	}
     template<typename _T, typename ..._Args>
     object_weak_ref<_T> create(id_type id, _Args&&... args);
 
     /// <summary>
     /// deconstruct in frame end
     /// </summary>
-    void destroy(id_type id);
+    inline void destroy(id_type id)
+    {
+        _destroy(id, &object_factory::_delete_obj);
+    }
 
     /// <summary>
     /// deconstruct immediately
     /// </summary>
-    void destroy_immediately(id_type id);
+    inline void destroy_immediately(id_type id)
+	{
+		_destroy(id, &object_factory::_delete_obj_immediately);
+	}
 
     weak_ref try_get(id_type id) const;
     temp_ref& try_get_temp(id_type id) const;
@@ -104,13 +113,6 @@ object_manager<_TID, _TObj>::~object_manager()
 }
 
 template<typename _TID, typename _TObj>
-template<typename ..._Args>
-typename object_manager<_TID, _TObj>::weak_ref object_manager<_TID, _TObj>::create(id_type id, _Args&&... args)
-{
-    return create<_TObj>(id, std::forward<_Args>(args)...);
-}
-
-template<typename _TID, typename _TObj>
 template<typename _T, typename ..._Args>
 object_weak_ref<_T> object_manager<_TID, _TObj>::create(id_type id, _Args&&... args)
 {
@@ -126,18 +128,6 @@ object_weak_ref<_T> object_manager<_TID, _TObj>::create(id_type id, _Args&&... a
     }
 
     return _obj_factory.get_weak_ref(p_obj);
-}
-
-template<typename _TID, typename _TObj>
-void object_manager<_TID, _TObj>::destroy(id_type id)
-{
-    _destroy(id, &object_factory::_delete_obj);
-}
-
-template<typename _TID, typename _TObj>
-void object_manager<_TID, _TObj>::destroy_immediately(id_type id)
-{
-    _destroy(id, &object_factory::_delete_obj_immediately);
 }
 
 template<typename _TID, typename _TObj>
